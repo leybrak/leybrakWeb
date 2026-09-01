@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from 'react';
 import logoCompacto from '../assets/logo/logo-compacto.png';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeContext } from '../context/ThemeContext.jsx';
-import { Moon, Sun, MessageCircle, LayoutGrid, Wrench, Users } from 'lucide-react';
+import { Moon, Sun, MessageCircle, LayoutGrid, Wrench, Users, Download } from 'lucide-react';
 import gsap from 'gsap';
 import { useScrollTo } from '../hooks/useScrollTo';
 
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { label: 'Softwares', to: '/softwares', icon: LayoutGrid },
   { label: 'Servicios', to: '/servicios', icon: Wrench     },
   { label: 'Nosotros',  to: '/nosotros',  icon: Users      },
+  { label: 'Descargas', to: '/descargas', icon: Download   },
 ];
 
 // ─── Bottom bar mobile ────────────────────────────────────────────────────────
@@ -51,24 +52,35 @@ const BottomBar = ({ isDark, toggleTheme }) => {
          className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white dark:bg-[#0f0f12] border-t-2 border-gray-900 dark:border-white/10"
          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div ref={indicatorRef} className="absolute -top-[2px] w-6 h-[3px] bg-leybrak-blue opacity-0" />
-      <div className="grid grid-cols-5 items-stretch h-16">
+      <div className="grid grid-cols-6 items-stretch h-16">
 
         {NAV_ITEMS.map((item, i) => {
           const Icon   = item.icon;
-          const active = isActive(item.to);
-          return (
-            <Link key={item.to} to={item.to} ref={el => itemRefs.current[i] = el}
-                  className="flex flex-col items-center justify-center gap-1 group"
-                  onClick={() => {
-                    gsap.to(itemRefs.current[i], {
-                      scale: 0.85, duration: 0.08,
-                      onComplete: () => gsap.to(itemRefs.current[i], { scale: 1, duration: 0.2, ease: 'back.out(3)' })
-                    });
-                  }}>
+          const active = item.to ? isActive(item.to) : false;
+          const bump   = () => gsap.to(itemRefs.current[i], {
+            scale: 0.85, duration: 0.08,
+            onComplete: () => gsap.to(itemRefs.current[i], { scale: 1, duration: 0.2, ease: 'back.out(3)' })
+          });
+          const content = (
+            <>
               <Icon size={20} className={`transition-colors duration-200 ${active ? 'text-leybrak-blue' : 'text-gray-400 dark:text-gray-600'}`} />
               <span className={`text-[9px] font-bold uppercase tracking-widest font-mono transition-colors duration-200 ${active ? 'text-leybrak-blue' : 'text-gray-400 dark:text-gray-600'}`}>
                 {item.label}
               </span>
+            </>
+          );
+          return item.href ? (
+            <a key={item.label} href={item.href} target="_blank" rel="noopener noreferrer"
+               ref={el => itemRefs.current[i] = el}
+               className="flex flex-col items-center justify-center gap-1 group"
+               onClick={bump}>
+              {content}
+            </a>
+          ) : (
+            <Link key={item.to} to={item.to} ref={el => itemRefs.current[i] = el}
+                  className="flex flex-col items-center justify-center gap-1 group"
+                  onClick={bump}>
+              {content}
             </Link>
           );
         })}
@@ -210,11 +222,19 @@ const Header = () => {
             {NAV_ITEMS.map((item, index) => (
               <div key={item.label} className="flex flex-col items-start">
                 <span className="text-[9px] font-mono text-gray-400 dark:text-gray-500 mb-[-2px]">0{index + 1}</span>
-                <Link to={item.to}
-                      onMouseEnter={(e) => scrambleText(e, item.label.toUpperCase())}
-                      className={`text-sm font-bold tracking-widest text-gray-900 dark:text-white uppercase leybrak-marker-underline ${isActive(item.to) ? 'active' : ''}`}>
-                  {item.label.toUpperCase()}
-                </Link>
+                {item.href ? (
+                  <a href={item.href} target="_blank" rel="noopener noreferrer"
+                     onMouseEnter={(e) => scrambleText(e, item.label.toUpperCase())}
+                     className="text-sm font-bold tracking-widest text-gray-900 dark:text-white uppercase leybrak-marker-underline">
+                    {item.label.toUpperCase()}
+                  </a>
+                ) : (
+                  <Link to={item.to}
+                        onMouseEnter={(e) => scrambleText(e, item.label.toUpperCase())}
+                        className={`text-sm font-bold tracking-widest text-gray-900 dark:text-white uppercase leybrak-marker-underline ${isActive(item.to) ? 'active' : ''}`}>
+                    {item.label.toUpperCase()}
+                  </Link>
+                )}
               </div>
             ))}
           </nav>

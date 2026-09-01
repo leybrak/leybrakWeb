@@ -7,6 +7,7 @@ import LeybrakPOS      from './pages/LeybrakPOS.jsx';
 import SoftwareAMedida from './pages/SoftwareAMedida.jsx';
 import Servicios       from './pages/Servicios.jsx';
 import Nosotros        from './pages/Nosotros.jsx';
+import Descargas       from './pages/Descargas.jsx';
 import NotFound        from './pages/NotFound.jsx';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="/softwares/a-medida"      element={<SoftwareAMedida />} />
           <Route path="/servicios"               element={<Servicios />}       />
           <Route path="/nosotros"                element={<Nosotros />}        />
+          <Route path="/descargas"               element={<Descargas />}       />
           <Route path="*"                        element={<NotFound />}        />
         </Routes>
       </main>
