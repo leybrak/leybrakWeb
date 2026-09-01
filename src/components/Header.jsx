@@ -6,7 +6,7 @@ import { Moon, Sun, MessageCircle, LayoutGrid, Wrench, Users, Download } from 'l
 import gsap from 'gsap';
 import { useScrollTo } from '../hooks/useScrollTo';
 
-const WHATSAPP_NUMBER = '51932264014';
+const WHATSAPP_NUMBER = '51976267494';
 const WHATSAPP_MSG    = encodeURIComponent('Hola Leybrak, quiero más información.');
 const WA_URL          = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
 

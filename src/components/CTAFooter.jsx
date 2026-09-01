@@ -7,7 +7,7 @@ import { useLead } from '../hooks/useLead';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const WHATSAPP_NUMBER = '51932264014'; // ← reemplaza con tu número real
+const WHATSAPP_NUMBER = '51976267494'; // ← reemplaza con tu número real
 const WHATSAPP_MSG    = encodeURIComponent('Hola Leybrak, quiero digitalizar mi negocio. ¿Podemos hablar?');
 const WHATSAPP_URL    = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
 

@@ -7,7 +7,7 @@ import { useLead } from '../hooks/useLead';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const WA_BASE    = 'https://wa.me/51932264014';
+const WA_BASE    = 'https://wa.me/51976267494';
 const WA_CUSTOM  = `${WA_BASE}?text=${encodeURIComponent('Hola Leybrak, me interesa un software a medida. ¿Podemos hablar?')}`;
 
 // ─── Servicios ────────────────────────────────────────────────────────────────

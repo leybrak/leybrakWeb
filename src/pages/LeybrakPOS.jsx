@@ -17,7 +17,7 @@ import imgMacSedes     from '../assets/img/hand-mackbook/sedes.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const WA_BASE = 'https://wa.me/51932264014';
+const WA_BASE = 'https://wa.me/51976267494';
 
 const DESKTOP_SHOTS = [
   { src: imgMacDashboard, label: 'Panel de control', desc: 'Ventas, órdenes activas y métricas del día en tiempo real.' },
