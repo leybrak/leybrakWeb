@@ -1,4 +1,5 @@
 const pool = require('../db/pool');
+const { slugify } = require('../utils/slugify');
 
 const toClient = (row) => ({
   id:          row.id,
@@ -8,7 +9,7 @@ const toClient = (row) => ({
   tag:         row.tag,
   description: row.description,
   features:    row.features,
-  to:          row.link_to,
+  to:          `/softwares/${row.slug}`,
   cta:         row.cta_label,
   imageUrl:    row.image_url,
   available:   row.available,
@@ -16,7 +17,22 @@ const toClient = (row) => ({
   downloadUrl: row.download_url,
   platform:    row.platform,
   images:      row.images,
+  slug:        row.slug,
 });
+
+// Genera un slug único a partir del título — nunca se le pide al admin.
+const generateUniqueSlug = async (title) => {
+  const base = slugify(title);
+  let slug = base;
+  let n = 2;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { rowCount } = await pool.query('SELECT 1 FROM products WHERE slug = $1', [slug]);
+    if (rowCount === 0) return slug;
+    slug = `${base}-${n}`;
+    n++;
+  }
+};
 
 // ── GET /api/products — público, lo consume la web ────────────────────────────
 const getProducts = async (req, res) => {
@@ -67,11 +83,12 @@ const createProduct = async (req, res) => {
   } = req.body;
 
   try {
+    const slug = await generateUniqueSlug(title);
     const result = await pool.query(
-      `INSERT INTO products (type, sys_name, title, tag, description, features, link_to, cta_label, image_url, available, sort_order, download_url, platform, images)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+      `INSERT INTO products (type, sys_name, title, tag, description, features, link_to, cta_label, image_url, available, sort_order, download_url, platform, images, slug)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
        RETURNING *`,
-      [type, sysName, title, tag, description, JSON.stringify(features), to, cta, imageUrl, available, sortOrder, downloadUrl, platform, JSON.stringify(images)]
+      [type, sysName, title, tag, description, JSON.stringify(features), to, cta, imageUrl, available, sortOrder, downloadUrl, platform, JSON.stringify(images), slug]
     );
 
     return res.status(201).json({ ok: true, data: toClient(result.rows[0]) });

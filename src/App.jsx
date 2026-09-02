@@ -7,6 +7,7 @@ import Landing         from './pages/Landing.jsx';
 import Softwares       from './pages/Softwares.jsx';
 import LeybrakPOS      from './pages/LeybrakPOS.jsx';
 import SoftwareAMedida from './pages/SoftwareAMedida.jsx';
+import ProductDetail   from './pages/ProductDetail.jsx';
 import Servicios       from './pages/Servicios.jsx';
 import Nosotros        from './pages/Nosotros.jsx';
 import Descargas       from './pages/Descargas.jsx';
@@ -34,6 +35,7 @@ function App() {
               <Route path="/softwares"               element={<Softwares />}       />
               <Route path="/softwares/leybrak-pos"   element={<LeybrakPOS />}      />
               <Route path="/softwares/a-medida"      element={<SoftwareAMedida />} />
+              <Route path="/softwares/:slug"         element={<ProductDetail />}   />
               <Route path="/servicios"               element={<Servicios />}       />
               <Route path="/nosotros"                element={<Nosotros />}        />
               <Route path="/descargas"               element={<Descargas />}       />
