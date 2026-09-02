@@ -11,6 +11,10 @@ const settingsRouter = require('./routes/settings.routes');
 const app  = express();
 const PORT = process.env.PORT || 3001;
 
+// ── Confía en el primer proxy (nginx-proxy-manager) para leer X-Forwarded-For
+// correctamente — sin esto, express-rate-limit rechaza las peticiones reales.
+app.set('trust proxy', 1);
+
 // ── Seguridad básica ──────────────────────────────────────────────────────────
 app.use(helmet());
 

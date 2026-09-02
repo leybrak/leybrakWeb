@@ -1,6 +1,26 @@
 version: '3.8'
 
 services:
+  # Base de datos Postgres — antes no existía como contenedor, por eso el
+  # backend nunca lograba conectarse. Usa las mismas credenciales del .env
+  # del backend (POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB deben coincidir
+  # con DB_USER/DB_PASSWORD/DB_NAME).
+  postgres:
+    image: postgres:16-alpine
+    container_name: leybrak_postgres
+    restart: always
+    env_file:
+      - ./leybrak-api/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nginx_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   # Tu página visual (Vite)
   landing_frontend:
     build: .
@@ -17,9 +37,15 @@ services:
     # Conectamos el archivo .env de tu API
     env_file:
       - ./leybrak-api/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - nginx_network
 
 networks:
   nginx_network:
     external: true
+
+volumes:
+  postgres_data:
