@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ArrowRight, Download } from 'lucide-react';
 import { useProducts } from '../hooks/useProducts';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 gsap.registerPlugin();
 
@@ -11,6 +12,7 @@ const Descargas = () => {
   const cardRefs  = useRef([]);
   const { products } = useProducts();
   const downloads = products.filter(p => p.downloadUrl);
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -56,14 +58,14 @@ const Descargas = () => {
           </h1>
           <p className="text-[1rem] text-gray-600 dark:text-gray-400 leading-relaxed border-l-2 border-gray-300 dark:border-gray-700 pl-4"
              style={{ fontFamily: "'Barlow', sans-serif" }}>
-            Todas las apps de Leybrak listas para instalar. Iremos sumando cada nuevo sistema aquí a medida que esté disponible.
+            {settings.descargas_subtitle}
           </p>
         </div>
 
         {/* Cards */}
         {downloads.length === 0 ? (
           <p className="text-gray-500 dark:text-gray-400 font-mono text-[0.9rem] border-2 border-dashed border-gray-300 dark:border-gray-700 p-10 text-center">
-            Todavía no hay descargas disponibles. Vuelve pronto.
+            {settings.descargas_empty_text}
           </p>
         ) : (
         <div className="grid md:grid-cols-3 gap-8">

@@ -28,6 +28,8 @@ export const DEFAULT_SETTINGS = {
   about_sectores:        '1',
   about_values_heading:  'Lo que nos mueve',
   about_team_text:       '',
+  descargas_subtitle:    'Todas las apps de Leybrak listas para instalar. Iremos sumando cada nuevo sistema aquí a medida que esté disponible.',
+  descargas_empty_text:  'Todavía no hay descargas disponibles. Vuelve pronto.',
 };
 
 export const SiteSettingsProvider = ({ children }) => {
