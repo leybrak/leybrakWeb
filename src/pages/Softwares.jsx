@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ArrowRight } from 'lucide-react';
 import { useProducts } from '../hooks/useProducts';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 gsap.registerPlugin();
 
@@ -10,6 +11,7 @@ const Softwares = () => {
   const headerRef = useRef(null);
   const cardRefs  = useRef([]);
   const { products } = useProducts('producto');
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -55,7 +57,7 @@ const Softwares = () => {
           </h1>
           <p className="text-[1rem] text-gray-600 dark:text-gray-400 leading-relaxed border-l-2 border-gray-300 dark:border-gray-700 pl-4"
              style={{ fontFamily: "'Barlow', sans-serif" }}>
-            Tres soluciones para tres necesidades distintas. Elige la que encaja con tu negocio hoy.
+            {settings.softwares_subtitle}
           </p>
         </div>
 

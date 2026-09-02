@@ -179,6 +179,7 @@ const seedSettings = async () => {
     about_founded:   '2026',
     about_city:      'Lima, Perú',
     about_mission:   'Hacer que la tecnología sea accesible para cualquier negocio, sin importar su tamaño.',
+    softwares_subtitle: 'Tres soluciones para tres necesidades distintas. Elige la que encaja con tu negocio hoy.',
   };
 
   for (const [key, value] of Object.entries(defaults)) {
