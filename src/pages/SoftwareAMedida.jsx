@@ -4,11 +4,9 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Check, MessageCircle, Send, Settings, Layers, GitMerge, ChevronDown } from 'lucide-react';
 import { useLead } from '../hooks/useLead';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 gsap.registerPlugin(ScrollTrigger);
-
-const WA_BASE    = 'https://wa.me/51976267494';
-const WA_CUSTOM  = `${WA_BASE}?text=${encodeURIComponent('Hola Leybrak, me interesa un software a medida. ¿Podemos hablar?')}`;
 
 // ─── Servicios ────────────────────────────────────────────────────────────────
 const SERVICES = [
@@ -222,6 +220,8 @@ const SoftwareAMedida = () => {
   const procRefs   = useRef([]);
   const faqRef     = useRef(null);
   const ctaRef     = useRef(null);
+  const { settings } = useSiteSettings();
+  const WA_CUSTOM = `https://wa.me/${settings.whatsapp_number}?text=${encodeURIComponent('Hola Leybrak, me interesa un software a medida. ¿Podemos hablar?')}`;
 
   useEffect(() => {
     window.scrollTo(0, 0);

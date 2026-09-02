@@ -3,7 +3,10 @@ const express    = require('express');
 const cors       = require('cors');
 const helmet     = require('helmet');
 const rateLimit  = require('express-rate-limit');
-const leadsRouter = require('./routes/leads.routes');
+const leadsRouter    = require('./routes/leads.routes');
+const authRouter     = require('./routes/auth.routes');
+const productsRouter = require('./routes/products.routes');
+const settingsRouter = require('./routes/settings.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -14,7 +17,7 @@ app.use(helmet());
 // ── CORS — solo permite peticiones desde el frontend ─────────────────────────
 app.use(cors({
   origin:      process.env.ALLOWED_ORIGIN || 'http://localhost:5173',
-  methods:     ['GET', 'POST', 'PATCH'],
+  methods:     ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: false,
 }));
 
@@ -32,7 +35,10 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // ── Rutas ─────────────────────────────────────────────────────────────────────
-app.use('/api/leads', leadsRouter);
+app.use('/api/leads',    leadsRouter);
+app.use('/api/auth',     authRouter);
+app.use('/api/products', productsRouter);
+app.use('/api/settings', settingsRouter);
 
 // Health check — útil para saber si el servidor está vivo desde el VPS
 app.get('/health', (_, res) => {

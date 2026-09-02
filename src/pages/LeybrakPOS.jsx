@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Check, X, Zap, Shield, Wifi, BarChart2, Users, Smartphone, Monitor } from 'lucide-react';
-
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 import imgHeroIphone from '../assets/pos/hero-iphone.png';
 import imgHeroS22 from '../assets/pos/hero-s22.png';
@@ -16,8 +16,6 @@ import imgMacEditor    from '../assets/img/hand-mackbook/editor-carta.png';
 import imgMacSedes     from '../assets/img/hand-mackbook/sedes.png';
 
 gsap.registerPlugin(ScrollTrigger);
-
-const WA_BASE = 'https://wa.me/51976267494';
 
 const DESKTOP_SHOTS = [
   { src: imgMacDashboard, label: 'Panel de control', desc: 'Ventas, órdenes activas y métricas del día en tiempo real.' },
@@ -189,6 +187,8 @@ const BravaPOS = () => {
   const phoneRef = useRef(null);
   const phone1Ref = useRef(null);
   const phone2Ref = useRef(null);
+  const { settings } = useSiteSettings();
+  const WA_BASE = `https://wa.me/${settings.whatsapp_number}`;
   useEffect(() => {
     window.scrollTo(0, 0);
 

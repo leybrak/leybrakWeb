@@ -4,19 +4,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MessageCircle, Send, ArrowRight } from 'lucide-react';
 import { FaInstagram, FaLinkedin, FaXTwitter } from 'react-icons/fa6';
 import { useLead } from '../hooks/useLead';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const WHATSAPP_NUMBER = '51976267494'; // ← reemplaza con tu número real
-const WHATSAPP_MSG    = encodeURIComponent('Hola Leybrak, quiero digitalizar mi negocio. ¿Podemos hablar?');
-const WHATSAPP_URL    = `https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MSG}`;
+const WHATSAPP_MSG = encodeURIComponent('Hola Leybrak, quiero digitalizar mi negocio. ¿Podemos hablar?');
 
 const NAV_LINKS = ['Softwares', 'Servicios', 'Nosotros'];
-const SOCIAL = [
-  { icon: FaInstagram, label: 'Instagram', href: '#' },
-  { icon: FaLinkedin,  label: 'LinkedIn',  href: '#' },
-  { icon: FaXTwitter,  label: 'Twitter',   href: '#' },
-];
 
 // Servicios disponibles para el select del formulario
 const SERVICIOS = [
@@ -37,6 +31,14 @@ const CTAFooter = () => {
 
   const [formData, setFormData] = useState({ nombre: '', telefono: '', servicio: 'general' });
   const { submit, status, errorMsg } = useLead();
+  const { settings } = useSiteSettings();
+
+  const whatsappUrl = `https://wa.me/${settings.whatsapp_number}?text=${WHATSAPP_MSG}`;
+  const social = [
+    { icon: FaInstagram, label: 'Instagram', href: settings.instagram_url },
+    { icon: FaLinkedin,  label: 'LinkedIn',  href: settings.linkedin_url },
+    { icon: FaXTwitter,  label: 'Twitter',   href: settings.twitter_url },
+  ].filter(s => s.href);
 
   // ── GSAP entrada ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -164,7 +166,7 @@ const CTAFooter = () => {
                   Cuéntanos qué tipo de negocio tienes y qué necesitas. Sin formularios, sin esperas.
                 </p>
               </div>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
                  className="flex items-center justify-center gap-3 bg-[#25D366] text-white px-6 py-4 text-[13px] font-bold uppercase tracking-widest border-2 border-[#25D366] hover:bg-transparent hover:text-[#25D366] transition-all duration-200 group"
                  style={{ boxShadow: '4px 4px 0px rgba(37,211,102,0.3)' }}>
                 <MessageCircle size={16} />
@@ -310,20 +312,30 @@ const CTAFooter = () => {
             {/* Contacto */}
             <div>
               <p className="text-white/30 text-[10px] font-mono tracking-[0.2em] uppercase mb-4">// contacto</p>
-              <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer"
-                 className="flex items-center gap-2 text-[#25D366] text-[0.82rem] font-mono hover:underline mb-6">
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+                 className="flex items-center gap-2 text-[#25D366] text-[0.82rem] font-mono hover:underline mb-3">
                 <MessageCircle size={13} />
                 WhatsApp directo
               </a>
-              <p className="text-white/30 text-[10px] font-mono tracking-[0.2em] uppercase mb-3">// redes</p>
-              <div className="flex gap-3">
-                {SOCIAL.map(({ icon: Icon, label, href }) => (
-                  <a key={label} href={href} aria-label={label}
-                     className="w-9 h-9 border border-white/10 flex items-center justify-center text-gray-600 hover:text-white hover:border-white/40 transition-all duration-200">
-                    <Icon size={15} />
-                  </a>
-                ))}
-              </div>
+              {settings.contact_email && (
+                <a href={`mailto:${settings.contact_email}`}
+                   className="block text-gray-400 hover:text-white text-[0.82rem] font-mono transition-colors mb-6">
+                  {settings.contact_email}
+                </a>
+              )}
+              {social.length > 0 && (
+                <>
+                  <p className="text-white/30 text-[10px] font-mono tracking-[0.2em] uppercase mb-3">// redes</p>
+                  <div className="flex gap-3">
+                    {social.map(({ icon: Icon, label, href }) => (
+                      <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label}
+                         className="w-9 h-9 border border-white/10 flex items-center justify-center text-gray-600 hover:text-white hover:border-white/40 transition-all duration-200">
+                        <Icon size={15} />
+                      </a>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
           </div>
