@@ -8,6 +8,9 @@ const ALLOWED_KEYS = [
   'instagram_url',
   'linkedin_url',
   'twitter_url',
+  'about_founded',
+  'about_city',
+  'about_mission',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────

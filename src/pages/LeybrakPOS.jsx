@@ -4,6 +4,8 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowRight, Check, X, Zap, Shield, Wifi, BarChart2, Users, Smartphone, Monitor } from 'lucide-react';
 import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useProducts } from '../hooks/useProducts';
+import { usePlans } from '../hooks/usePlans';
 
 import imgHeroIphone from '../assets/pos/hero-iphone.png';
 import imgHeroS22 from '../assets/pos/hero-s22.png';
@@ -17,7 +19,7 @@ import imgMacSedes     from '../assets/img/hand-mackbook/sedes.png';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const DESKTOP_SHOTS = [
+const DEFAULT_SHOTS = [
   { src: imgMacDashboard, label: 'Panel de control', desc: 'Ventas, órdenes activas y métricas del día en tiempo real.' },
   { src: imgMacMesasMenu, label: 'Órdenes en curso', desc: 'Estado de cada mesa y totales al instante.' },
   { src: imgMacMesasPed,  label: 'Tomar pedido',     desc: 'Selecciona productos y envía la orden a cocina.' },
@@ -41,7 +43,7 @@ const RUBROS = [
   'Comida rápida', 'Dark kitchens', 'Menú del día', 'Parrillas',
 ];
 
-const PLANS = [
+const DEFAULT_PLANS = [
   {
     name: 'Básico', price: 80, tag: 'Para empezar', featured: false,
     desc: 'Todo lo que necesitas para digitalizar tu operación desde el primer día.',
@@ -75,12 +77,12 @@ const PLANS = [
 ];
 
 // ─── Galería solo escritorio con auto-avance ──────────────────────────────────
-const Gallery = () => {
+const Gallery = ({ shots = DEFAULT_SHOTS }) => {
   const [active, setActive]   = useState(0);
   const previewRef            = useRef(null);
   const intervalRef           = useRef(null);
   const activeRef             = useRef(0); // ref para leer en el interval sin stale closure
-  const shot                  = DESKTOP_SHOTS[active];
+  const shot                  = shots[active] || shots[0];
 
   const animateTo = (idx) => {
     if (idx === activeRef.current) return;
@@ -97,19 +99,21 @@ const Gallery = () => {
 
   // Auto-avance cada 4 segundos
   useEffect(() => {
+    activeRef.current = 0;
+    (() => setActive(0))();
     intervalRef.current = setInterval(() => {
-      const next = (activeRef.current + 1) % DESKTOP_SHOTS.length;
+      const next = (activeRef.current + 1) % shots.length;
       animateTo(next);
     }, 4000);
     return () => clearInterval(intervalRef.current);
-  }, []);
+  }, [shots]);
 
   // Al hacer clic manual, reinicia el timer
   const goTo = (idx) => {
     clearInterval(intervalRef.current);
     animateTo(idx);
     intervalRef.current = setInterval(() => {
-      const next = (activeRef.current + 1) % DESKTOP_SHOTS.length;
+      const next = (activeRef.current + 1) % shots.length;
       animateTo(next);
     }, 4000);
   };
@@ -128,7 +132,7 @@ const Gallery = () => {
 
         {/* Barra de progreso del auto-avance */}
         <div className="flex gap-1">
-          {DESKTOP_SHOTS.map((_, i) => (
+          {shots.map((_, i) => (
             <div key={i} className="flex-1 h-[2px] bg-gray-800 overflow-hidden rounded-full">
               <div
                 className={`h-full bg-leybrak-blue transition-all duration-300 ${i === active ? 'w-full' : 'w-0'}`}
@@ -140,7 +144,7 @@ const Gallery = () => {
 
         <div className="flex flex-col gap-1">
           <p className="text-[10px] font-mono uppercase tracking-widest text-gray-600 mb-1 pl-1">// PANTALLAS</p>
-          {DESKTOP_SHOTS.map((s, i) => (
+          {shots.map((s, i) => (
             <button key={i} onClick={() => goTo(i)}
                     className={`flex items-center gap-3 p-2 border border-transparent text-left transition-all duration-300 rounded-sm group
                       ${i === active ? 'bg-[#111] border-white/10' : 'hover:bg-[#0a0a0a]'}`}>
@@ -187,8 +191,21 @@ const BravaPOS = () => {
   const phoneRef = useRef(null);
   const phone1Ref = useRef(null);
   const phone2Ref = useRef(null);
+  const plansSectionRef = useRef(null);
   const { settings } = useSiteSettings();
   const WA_BASE = `https://wa.me/${settings.whatsapp_number}`;
+
+  const { products } = useProducts();
+  const product  = products.find(p => p.to === '/softwares/leybrak-pos');
+  const platform = product?.platform || 'both';
+  const { plans: fetchedPlans } = usePlans(product?.id);
+  const plans = fetchedPlans.length > 0
+    ? fetchedPlans.map(p => ({ name: p.name, price: p.price, priceNote: p.priceNote, tag: p.tag, featured: p.featured, desc: p.description, features: p.features }))
+    : DEFAULT_PLANS;
+  const shots = product?.images?.length > 0
+    ? product.images.map(img => ({ src: img.url, label: img.label || '', desc: img.description || '' }))
+    : DEFAULT_SHOTS;
+
   useEffect(() => {
     window.scrollTo(0, 0);
 
@@ -221,14 +238,6 @@ const BravaPOS = () => {
       );
     });
 
-    planRefs.current.forEach((el, i) => {
-      if (!el) return;
-      gsap.fromTo(el,
-        { opacity: 0, y: 50, scale: 0.97 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.5, delay: i * 0.12, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%' } }
-      );
-    });
-
     gsap.fromTo(ctaRef.current,
       { opacity: 0, y: 30 },
       { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', scrollTrigger: { trigger: ctaRef.current, start: 'top 90%' } }
@@ -236,6 +245,23 @@ const BravaPOS = () => {
 
     return () => ScrollTrigger.getAll().forEach(t => t.kill());
   }, []);
+
+  // Los planes llegan de la API de forma asíncrona (con fallback mientras cargan),
+  // así que sus animaciones van en un efecto aparte, acotado con gsap.context
+  // para no interferir con los ScrollTrigger de las demás secciones.
+  useEffect(() => {
+    if (plans.length === 0) return;
+    const ctx = gsap.context(() => {
+      planRefs.current.forEach((el, i) => {
+        if (!el) return;
+        gsap.fromTo(el,
+          { opacity: 0, y: 50, scale: 0.97 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.5, delay: i * 0.12, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 85%' } }
+        );
+      });
+    }, plansSectionRef);
+    return () => ctx.revert();
+  }, [plans]);
 
   return (
     <div className="relative min-h-screen bg-leybrak-light dark:bg-leybrak-dark transition-colors duration-300"
@@ -311,30 +337,32 @@ const BravaPOS = () => {
                 </div>
               </div>
 
-              {/* Imagen hero */}
-              <div className="hidden lg:flex relative w-full h-[650px] items-center justify-center pointer-events-none z-10">
-                  <div className="absolute w-[90%] h-[90%] bg-leybrak-blue/10 blur-[120px] rounded-full z-0" />
-                  
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    
-                    {/* S22 ULTRA (Está a la izquierda) -> Lo movemos a la DERECHA para que se acerque al centro (+) */}
-                    <img 
-                    ref={phone2Ref}
-                    src={imgHeroS22} 
-                    alt="Leybrak POS Mesas" 
-                    className="absolute w-[200%] max-w-none object-contain drop-shadow-2xl z-10 opacity-80 translate-x-1 scale-100"
-                    />
+              {/* Imagen hero — solo si el producto está marcado para celular */}
+              {platform !== 'desktop' && (
+                <div className="hidden lg:flex relative w-full h-[650px] items-center justify-center pointer-events-none z-10">
+                    <div className="absolute w-[90%] h-[90%] bg-leybrak-blue/10 blur-[120px] rounded-full z-0" />
 
-                    {/* IPHONE (Está a la derecha) -> Lo movemos a la IZQUIERDA para que se acerque al centro (-) */}
-                    <img 
-                    ref={phone1Ref}
-                    src={imgHeroIphone} 
-                    alt="Leybrak POS Pedidos" 
-                    className="absolute w-[200%] max-w-none object-contain drop-shadow-2xl z-20 -translate-x-1 translate-y-8 scale-100"
-                    />
+                    <div className="relative w-full h-full flex items-center justify-center">
 
-                  </div>
-              </div>
+                      {/* S22 ULTRA (Está a la izquierda) -> Lo movemos a la DERECHA para que se acerque al centro (+) */}
+                      <img
+                      ref={phone2Ref}
+                      src={imgHeroS22}
+                      alt="Leybrak POS Mesas"
+                      className="absolute w-[200%] max-w-none object-contain drop-shadow-2xl z-10 opacity-80 translate-x-1 scale-100"
+                      />
+
+                      {/* IPHONE (Está a la derecha) -> Lo movemos a la IZQUIERDA para que se acerque al centro (-) */}
+                      <img
+                      ref={phone1Ref}
+                      src={imgHeroIphone}
+                      alt="Leybrak POS Pedidos"
+                      className="absolute w-[200%] max-w-none object-contain drop-shadow-2xl z-20 -translate-x-1 translate-y-8 scale-100"
+                      />
+
+                    </div>
+                </div>
+              )}
 
             </div>
           </div>
@@ -342,20 +370,22 @@ const BravaPOS = () => {
           <div className="absolute top-10 -right-40 w-[600px] h-[600px] border-[30px] border-gray-900/5 dark:border-white/5 rounded-full pointer-events-none z-0" />
         </section>
 
-        {/* ── GALERÍA ───────────────────────────────────────────────────────── */}
-        <section className="py-16 px-6 border-b-2 border-white/5 bg-[#030303]">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-12 text-center lg:text-left">
-              <span className="inline-flex items-center bg-[#111] text-white text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-4 block w-fit mx-auto lg:mx-0">
-                // CAPTURAS_DEL_SISTEMA
-              </span>
-              <h2 className="text-[clamp(2rem,4vw,3rem)] font-black uppercase leading-tight text-white">
-                Ve cada pantalla del sistema.
-              </h2>
+        {/* ── GALERÍA — solo si el producto está marcado para escritorio ─────── */}
+        {platform !== 'mobile' && (
+          <section className="py-16 px-6 border-b-2 border-white/5 bg-[#030303]">
+            <div className="max-w-7xl mx-auto">
+              <div className="mb-12 text-center lg:text-left">
+                <span className="inline-flex items-center bg-[#111] text-white text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-4 block w-fit mx-auto lg:mx-0">
+                  // CAPTURAS_DEL_SISTEMA
+                </span>
+                <h2 className="text-[clamp(2rem,4vw,3rem)] font-black uppercase leading-tight text-white">
+                  Ve cada pantalla del sistema.
+                </h2>
+              </div>
+              <div ref={galRef}><Gallery shots={shots} /></div>
             </div>
-            <div ref={galRef}><Gallery /></div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* ── FEATURES ─────────────────────────────────────────────────────── */}
         <section className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10 overflow-hidden">
@@ -416,7 +446,7 @@ const BravaPOS = () => {
         </section>
 
         {/* ── PLANES ───────────────────────────────────────────────────────── */}
-        <section id="planes" className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-50 dark:bg-[#08080a]">
+        <section id="planes" ref={plansSectionRef} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-50 dark:bg-[#08080a]">
           <div className="max-w-4xl mx-auto relative">
             <div className="mb-16 text-center relative z-10">
               <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-4 mx-auto">
@@ -429,7 +459,7 @@ const BravaPOS = () => {
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 relative z-10">
-              {PLANS.map((plan, i) => (
+              {plans.map((plan, i) => (
                 <div key={i} ref={el => planRefs.current[i] = el} className="relative flex flex-col">
                   <div className={`absolute top-3 left-3 w-full h-full border-2 z-0 ${plan.featured ? 'bg-leybrak-blue border-leybrak-blue' : 'bg-gray-300 dark:bg-gray-700 border-gray-300 dark:border-gray-700'}`} />
                   <div className="relative z-10 flex flex-col h-full bg-white dark:bg-[#0f0f12] border-2 border-gray-900 dark:border-white rounded-sm">
@@ -441,7 +471,7 @@ const BravaPOS = () => {
                         </div>
                         <div className="text-right">
                           <div className={`text-[2.8rem] font-black leading-none ${plan.featured ? 'text-white' : 'text-white dark:text-gray-900'}`}>S/{plan.price}</div>
-                          <div className={`text-[11px] font-mono ${plan.featured ? 'text-white/60' : 'text-white/50 dark:text-gray-900/50'}`}>/ mes</div>
+                          <div className={`text-[11px] font-mono ${plan.featured ? 'text-white/60' : 'text-white/50 dark:text-gray-900/50'}`}>{plan.priceNote || '/mes'}</div>
                         </div>
                       </div>
                       <p className={`text-[0.82rem] mt-3 leading-relaxed ${plan.featured ? 'text-white/80' : 'text-white/60 dark:text-gray-900/60'}`}

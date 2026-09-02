@@ -15,6 +15,9 @@ const EMPTY_FORM = {
   imageUrl: '',
   available: true,
   sortOrder: 0,
+  downloadUrl: '',
+  platform: 'both',
+  images: [],
 };
 
 const toFormState = (product) => ({
@@ -29,6 +32,9 @@ const toFormState = (product) => ({
   imageUrl:   product.imageUrl || '',
   available:  product.available,
   sortOrder:  product.sortOrder ?? 0,
+  downloadUrl: product.downloadUrl || '',
+  platform:   product.platform || 'both',
+  images:     product.images && product.images.length > 0 ? product.images : [],
 });
 
 const ProductsPanel = () => {
@@ -59,6 +65,13 @@ const ProductsPanel = () => {
 
   const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
+  const addImage = () => setForm(prev => ({ ...prev, images: [...prev.images, { url: '', label: '', description: '' }] }));
+  const removeImage = (i) => setForm(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }));
+  const changeImage = (i, field, value) => setForm(prev => ({
+    ...prev,
+    images: prev.images.map((img, idx) => idx === i ? { ...img, [field]: value } : img),
+  }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -66,10 +79,12 @@ const ProductsPanel = () => {
 
     const payload = {
       ...form,
-      features:  form.features.split('\n').map(f => f.trim()).filter(Boolean),
-      to:        form.to || null,
-      imageUrl:  form.imageUrl || null,
-      sortOrder: Number(form.sortOrder) || 0,
+      features:    form.features.split('\n').map(f => f.trim()).filter(Boolean),
+      to:          form.to || null,
+      imageUrl:    form.imageUrl || null,
+      downloadUrl: form.downloadUrl || null,
+      sortOrder:   Number(form.sortOrder) || 0,
+      images:      form.images.filter(img => img.url.trim()),
     };
 
     try {
@@ -204,15 +219,88 @@ const ProductsPanel = () => {
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-            Imagen (URL, opcional)
-            <input
-              value={form.imageUrl}
-              onChange={e => handleChange('imageUrl', e.target.value)}
-              placeholder="https://..."
+          <div className="grid md:grid-cols-2 gap-4">
+            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+              Imagen de la tarjeta (URL, opcional)
+              <input
+                value={form.imageUrl}
+                onChange={e => handleChange('imageUrl', e.target.value)}
+                placeholder="https://..."
+                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
+              />
+            </label>
+
+            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+              Enlace de descarga (aparece en /descargas si se llena)
+              <input
+                value={form.downloadUrl}
+                onChange={e => handleChange('downloadUrl', e.target.value)}
+                placeholder="https://..."
+                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
+              />
+            </label>
+          </div>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500 max-w-xs">
+            Plataforma
+            <select
+              value={form.platform}
+              onChange={e => handleChange('platform', e.target.value)}
               className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
-            />
+            >
+              <option value="both">Celular y escritorio</option>
+              <option value="mobile">Solo celular</option>
+              <option value="desktop">Solo escritorio</option>
+            </select>
           </label>
+
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono uppercase text-gray-500">
+                Galería de imágenes (para la página de presentación del sistema)
+              </span>
+              <button
+                type="button"
+                onClick={addImage}
+                className="flex items-center gap-1 text-[11px] font-bold uppercase tracking-widest text-leybrak-blue hover:underline"
+              >
+                <Plus size={13} /> Agregar imagen
+              </button>
+            </div>
+
+            {form.images.length === 0 && (
+              <p className="text-gray-400 text-[12px] font-mono">Sin imágenes todavía.</p>
+            )}
+
+            {form.images.map((img, i) => (
+              <div key={i} className="border border-gray-300 dark:border-white/20 p-3 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-gray-400">Imagen {i + 1}</span>
+                  <button type="button" onClick={() => removeImage(i)} className="text-gray-400 hover:text-red-500">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+                <input
+                  value={img.url}
+                  onChange={e => changeImage(i, 'url', e.target.value)}
+                  placeholder="URL de la imagen (https://...)"
+                  className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2 text-[12px] font-mono outline-none"
+                />
+                <input
+                  value={img.label}
+                  onChange={e => changeImage(i, 'label', e.target.value)}
+                  placeholder="Título corto (ej. Panel de control)"
+                  className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2 text-[12px] font-mono outline-none normal-case"
+                />
+                <input
+                  value={img.description}
+                  onChange={e => changeImage(i, 'description', e.target.value)}
+                  placeholder="Descripción corta (opcional)"
+                  className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2 text-[12px] font-mono outline-none normal-case"
+                />
+              </div>
+            ))}
+          </div>
 
           <div className="grid md:grid-cols-2 gap-4">
             <label className="flex items-center gap-2 text-[11px] font-mono uppercase text-gray-500">
@@ -268,7 +356,8 @@ const ProductsPanel = () => {
               <tr className="border-b-2 border-gray-900 dark:border-white text-[10px] font-mono uppercase tracking-widest text-gray-500">
                 <th className="px-4 py-3">Título</th>
                 <th className="px-4 py-3">Tipo</th>
-                <th className="px-4 py-3">Etiqueta</th>
+                <th className="px-4 py-3">Plataforma</th>
+                <th className="px-4 py-3">Descarga</th>
                 <th className="px-4 py-3">Visible</th>
                 <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3"></th>
@@ -279,7 +368,8 @@ const ProductsPanel = () => {
                 <tr key={p.id} className="border-b border-gray-200 dark:border-white/10 text-[13px] text-gray-900 dark:text-white">
                   <td className="px-4 py-3 font-bold">{p.title}</td>
                   <td className="px-4 py-3 font-mono text-gray-500 capitalize">{p.type}</td>
-                  <td className="px-4 py-3 text-gray-500">{p.tag}</td>
+                  <td className="px-4 py-3 font-mono text-gray-500 capitalize">{p.platform}</td>
+                  <td className="px-4 py-3">{p.downloadUrl ? 'Sí' : 'No'}</td>
                   <td className="px-4 py-3">{p.available ? 'Sí' : 'No'}</td>
                   <td className="px-4 py-3 font-mono text-gray-500">{p.sortOrder}</td>
                   <td className="px-4 py-3">

@@ -15,6 +15,9 @@ export const DEFAULT_SETTINGS = {
   instagram_url:   '',
   linkedin_url:    '',
   twitter_url:     '',
+  about_founded:   '',
+  about_city:      '',
+  about_mission:   '',
 };
 
 export const SiteSettingsProvider = ({ children }) => {

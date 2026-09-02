@@ -3,10 +3,13 @@ const express    = require('express');
 const cors       = require('cors');
 const helmet     = require('helmet');
 const rateLimit  = require('express-rate-limit');
-const leadsRouter    = require('./routes/leads.routes');
-const authRouter     = require('./routes/auth.routes');
-const productsRouter = require('./routes/products.routes');
-const settingsRouter = require('./routes/settings.routes');
+const leadsRouter       = require('./routes/leads.routes');
+const authRouter        = require('./routes/auth.routes');
+const productsRouter    = require('./routes/products.routes');
+const settingsRouter    = require('./routes/settings.routes');
+const plansRouter       = require('./routes/plans.routes');
+const servicesRouter    = require('./routes/services.routes');
+const aboutValuesRouter = require('./routes/aboutValues.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -28,10 +31,13 @@ app.use(cors({
 // ── Body parser ───────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10kb' }));
 
-// ── Rate limiting — máx 20 peticiones por IP cada 15 min ────────────────────
+// ── Rate limiting — protección básica contra abuso ───────────────────────────
+// El panel admin hace varias peticiones por pestaña (productos, planes,
+// servicios, configuración...), así que el límite general tiene que ser
+// generoso; el login tiene su propio límite más estricto aparte.
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max:      20,
+  max:      300,
   message:  { ok: false, message: 'Demasiadas solicitudes. Intenta en unos minutos.' },
   standardHeaders: true,
   legacyHeaders:   false,
@@ -39,10 +45,13 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // ── Rutas ─────────────────────────────────────────────────────────────────────
-app.use('/api/leads',    leadsRouter);
-app.use('/api/auth',     authRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/settings', settingsRouter);
+app.use('/api/leads',        leadsRouter);
+app.use('/api/auth',         authRouter);
+app.use('/api/products',     productsRouter);
+app.use('/api/settings',     settingsRouter);
+app.use('/api/plans',        plansRouter);
+app.use('/api/services',     servicesRouter);
+app.use('/api/about-values', aboutValuesRouter);
 
 // Health check — útil para saber si el servidor está vivo desde el VPS
 app.get('/health', (_, res) => {

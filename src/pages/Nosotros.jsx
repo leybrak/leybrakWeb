@@ -2,21 +2,13 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ArrowRight } from 'lucide-react';
-
-// ─── Reemplaza estos valores cuando tengas el contenido real ──────────────────
-const PLACEHOLDER = {
-  founded:  '2026',
-  city:     'Lima, Perú',
-  mission:  'Hacer que la tecnología sea accesible para cualquier negocio, sin importar su tamaño.',
-  values: [
-    { id: '01', title: 'Claridad', desc: 'Sin tecnicismos. Te explicamos todo en lenguaje de negocio.' },
-    { id: '02', title: 'Compromiso', desc: 'No desaparecemos después de entregar. Estamos cuando nos necesitas.' },
-    { id: '03', title: 'Resultados', desc: 'No medimos el éxito en código entregado, sino en impacto en tu negocio.' },
-  ],
-};
+import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useContentItems } from '../hooks/useContentItems';
 
 const Nosotros = () => {
   const sectionRef = useRef(null);
+  const { settings } = useSiteSettings();
+  const { items: values } = useContentItems('/api/about-values');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -73,15 +65,15 @@ const Nosotros = () => {
             className="text-[1rem] text-gray-600 dark:text-gray-400 leading-relaxed border-l-2 border-gray-300 dark:border-gray-700 pl-4"
             style={{ fontFamily: "'Barlow', sans-serif" }}
           >
-            {PLACEHOLDER.mission}
+            {settings.about_mission}
           </p>
         </div>
 
         {/* Stats rápidos */}
         <div className="fade-in grid grid-cols-2 md:grid-cols-4 border-l-2 border-t-2 border-gray-900 dark:border-white/10 mb-16">
           {[
-            { label: 'Fundada',    value: PLACEHOLDER.founded },
-            { label: 'Ciudad',     value: PLACEHOLDER.city },
+            { label: 'Fundada',    value: settings.about_founded },
+            { label: 'Ciudad',     value: settings.about_city },
             { label: 'Negocios',   value: '1' },
             { label: 'Sectores',   value: '1' },
           ].map((stat) => (
@@ -105,13 +97,13 @@ const Nosotros = () => {
             Lo que nos mueve
           </h2>
           <div className="grid md:grid-cols-3 gap-0 border-l-2 border-t-2 border-gray-900 dark:border-white/10">
-            {PLACEHOLDER.values.map((v) => (
+            {values.map((v, i) => (
               <div
                 key={v.id}
                 className="border-r-2 border-b-2 border-gray-900 dark:border-white/10 p-8"
               >
                 <span className="font-mono text-[10px] text-leybrak-blue font-bold tracking-[0.2em] block mb-3">
-                  {v.id}
+                  {String(i + 1).padStart(2, '0')}
                 </span>
                 <h3 className="text-[1.3rem] font-black uppercase text-gray-900 dark:text-white mb-3 tracking-tight">
                   {v.title}
@@ -120,7 +112,7 @@ const Nosotros = () => {
                   className="text-[0.88rem] text-gray-500 dark:text-gray-400 leading-relaxed"
                   style={{ fontFamily: "'Barlow', sans-serif" }}
                 >
-                  {v.desc}
+                  {v.description}
                 </p>
               </div>
             ))}

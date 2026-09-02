@@ -1,13 +1,23 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, Package, Settings, KeyRound, ArrowLeft } from 'lucide-react';
+import { LogOut, Package, Settings, KeyRound, ArrowLeft, Tag, Wrench, Users } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import ProductsPanel from '../../components/Admin/ProductsPanel';
+import PlansPanel from '../../components/Admin/PlansPanel';
+import ContentItemsPanel from '../../components/Admin/ContentItemsPanel';
+import AboutPanel from '../../components/Admin/AboutPanel';
 import SettingsPanel from '../../components/Admin/SettingsPanel';
 import PasswordPanel from '../../components/Admin/PasswordPanel';
 
+const ServiciosPanel = () => (
+  <ContentItemsPanel heading="Servicios" apiPath="/api/services" itemLabel="servicio" />
+);
+
 const TABS = [
   { key: 'productos',     label: 'Productos',     icon: Package,   Panel: ProductsPanel },
+  { key: 'planes',        label: 'Planes',        icon: Tag,       Panel: PlansPanel },
+  { key: 'servicios',     label: 'Servicios',      icon: Wrench,    Panel: ServiciosPanel },
+  { key: 'nosotros',      label: 'Nosotros',       icon: Users,     Panel: AboutPanel },
   { key: 'configuracion', label: 'Configuración', icon: Settings,  Panel: SettingsPanel },
   { key: 'contrasena',    label: 'Contraseña',    icon: KeyRound,  Panel: PasswordPanel },
 ];
