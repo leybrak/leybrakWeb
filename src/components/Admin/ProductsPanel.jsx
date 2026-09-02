@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useProducts } from '../../hooks/useProducts';
 
@@ -14,7 +14,6 @@ const EMPTY_FORM = {
   cta: 'Saber más',
   imageUrl: '',
   available: true,
-  sortOrder: 0,
   downloadUrl: '',
   platform: 'both',
   images: [],
@@ -31,10 +30,28 @@ const toFormState = (product) => ({
   cta:        product.cta || 'Saber más',
   imageUrl:   product.imageUrl || '',
   available:  product.available,
-  sortOrder:  product.sortOrder ?? 0,
   downloadUrl: product.downloadUrl || '',
   platform:   product.platform || 'both',
   images:     product.images && product.images.length > 0 ? product.images : [],
+});
+
+// Todos los campos que puede llevar un producto, salvo el orden (que se
+// maneja aparte con las flechas ▲▼) — se reutiliza para guardar y para
+// reordenar, así el PUT siempre manda el objeto completo.
+const toPayload = (form) => ({
+  type:        form.type,
+  sysName:     form.sysName,
+  title:       form.title,
+  tag:         form.tag,
+  description: form.description,
+  features:    Array.isArray(form.features) ? form.features : form.features.split('\n').map(f => f.trim()).filter(Boolean),
+  to:          form.to || null,
+  cta:         form.cta,
+  imageUrl:    form.imageUrl || null,
+  available:   form.available,
+  downloadUrl: form.downloadUrl || null,
+  platform:    form.platform,
+  images:      (form.images || []).filter(img => img.url?.trim()),
 });
 
 const ProductsPanel = () => {
@@ -45,6 +62,7 @@ const ProductsPanel = () => {
   const [form, setForm]           = useState(EMPTY_FORM);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+  const [reordering, setReordering] = useState(false);
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -77,21 +95,13 @@ const ProductsPanel = () => {
     setSaving(true);
     setError('');
 
-    const payload = {
-      ...form,
-      features:    form.features.split('\n').map(f => f.trim()).filter(Boolean),
-      to:          form.to || null,
-      imageUrl:    form.imageUrl || null,
-      downloadUrl: form.downloadUrl || null,
-      sortOrder:   Number(form.sortOrder) || 0,
-      images:      form.images.filter(img => img.url.trim()),
-    };
-
     try {
       if (editingId === 'new') {
-        await authFetch('/api/products', { method: 'POST', body: JSON.stringify(payload) });
+        const nextOrder = products.length > 0 ? Math.max(...products.map(p => p.sortOrder ?? 0)) + 1 : 1;
+        await authFetch('/api/products', { method: 'POST', body: JSON.stringify({ ...toPayload(form), sortOrder: nextOrder }) });
       } else {
-        await authFetch(`/api/products/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+        const current = products.find(p => p.id === editingId);
+        await authFetch(`/api/products/${editingId}`, { method: 'PUT', body: JSON.stringify({ ...toPayload(form), sortOrder: current?.sortOrder ?? 0 }) });
       }
       await refresh();
       closeForm();
@@ -109,6 +119,25 @@ const ProductsPanel = () => {
       await refresh();
     } catch (err) {
       window.alert(err.message);
+    }
+  };
+
+  const move = async (index, direction) => {
+    const otherIndex = index + direction;
+    if (otherIndex < 0 || otherIndex >= products.length) return;
+    const a = products[index];
+    const b = products[otherIndex];
+    setReordering(true);
+    try {
+      await Promise.all([
+        authFetch(`/api/products/${a.id}`, { method: 'PUT', body: JSON.stringify({ ...toPayload(a), sortOrder: b.sortOrder }) }),
+        authFetch(`/api/products/${b.id}`, { method: 'PUT', body: JSON.stringify({ ...toPayload(b), sortOrder: a.sortOrder }) }),
+      ]);
+      await refresh();
+    } catch (err) {
+      window.alert(err.message);
+    } finally {
+      setReordering(false);
     }
   };
 
@@ -200,13 +229,17 @@ const ProductsPanel = () => {
 
           <div className="grid md:grid-cols-2 gap-4">
             <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-              Enlace del botón (ruta o URL)
+              ¿A dónde lleva el botón? (opcional)
               <input
                 value={form.to}
                 onChange={e => handleChange('to', e.target.value)}
-                placeholder="/softwares/leybrak-pos"
-                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
+                placeholder="Déjalo vacío → va a la página de Softwares"
+                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none normal-case"
               />
+              <span className="text-gray-400 text-[10px] normal-case leading-snug">
+                Solo llénalo si quieres que abra algo específico: una URL externa (ej. una demo)
+                o, si ya existe, la página propia de este sistema.
+              </span>
             </label>
 
             <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
@@ -302,27 +335,21 @@ const ProductsPanel = () => {
             ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <label className="flex items-center gap-2 text-[11px] font-mono uppercase text-gray-500">
-              <input
-                type="checkbox"
-                checked={form.available}
-                onChange={e => handleChange('available', e.target.checked)}
-                className="w-4 h-4 accent-leybrak-blue"
-              />
-              Disponible / visible
-            </label>
+          <label className="flex items-center gap-2 text-[11px] font-mono uppercase text-gray-500">
+            <input
+              type="checkbox"
+              checked={form.available}
+              onChange={e => handleChange('available', e.target.checked)}
+              className="w-4 h-4 accent-leybrak-blue"
+            />
+            Disponible / visible
+          </label>
 
-            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-              Orden (menor = primero)
-              <input
-                type="number"
-                value={form.sortOrder}
-                onChange={e => handleChange('sortOrder', e.target.value)}
-                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
-              />
-            </label>
-          </div>
+          {editingId === 'new' && (
+            <p className="text-gray-400 text-[11px] font-mono normal-case">
+              Se agrega al final de la lista — después puedes reordenarlo con las flechas ▲▼.
+            </p>
+          )}
 
           {error && <p className="text-red-500 text-[12px] font-mono">{error}</p>}
 
@@ -354,24 +381,43 @@ const ProductsPanel = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b-2 border-gray-900 dark:border-white text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3">Título</th>
                 <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3">Plataforma</th>
                 <th className="px-4 py-3">Descarga</th>
                 <th className="px-4 py-3">Visible</th>
-                <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {products.map(p => (
+              {products.map((p, i) => (
                 <tr key={p.id} className="border-b border-gray-200 dark:border-white/10 text-[13px] text-gray-900 dark:text-white">
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => move(i, -1)}
+                        disabled={i === 0 || reordering}
+                        className="text-gray-400 hover:text-leybrak-blue disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Subir"
+                      >
+                        <ArrowUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => move(i, 1)}
+                        disabled={i === products.length - 1 || reordering}
+                        className="text-gray-400 hover:text-leybrak-blue disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Bajar"
+                      >
+                        <ArrowDown size={14} />
+                      </button>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-bold">{p.title}</td>
                   <td className="px-4 py-3 font-mono text-gray-500 capitalize">{p.type}</td>
                   <td className="px-4 py-3 font-mono text-gray-500 capitalize">{p.platform}</td>
                   <td className="px-4 py-3">{p.downloadUrl ? 'Sí' : 'No'}</td>
                   <td className="px-4 py-3">{p.available ? 'Sí' : 'No'}</td>
-                  <td className="px-4 py-3 font-mono text-gray-500">{p.sortOrder}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 justify-end">
                       <button onClick={() => openEdit(p)} className="text-gray-400 hover:text-leybrak-blue transition-colors">

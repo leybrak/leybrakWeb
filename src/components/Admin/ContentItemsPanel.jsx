@@ -1,15 +1,16 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useContentItems } from '../../hooks/useContentItems';
 
-const EMPTY_FORM = { title: '', description: '', sortOrder: 0 };
+const EMPTY_FORM = { title: '', description: '' };
 
 // Panel de administración genérico para listas con forma
 // (título, descripción, orden) — usado para Servicios, Valores de Nosotros,
 // el Manifiesto y los pasos de Inicio. `hideDescription` oculta el campo de
 // descripción cuando la lista solo necesita un texto (ej. el Manifiesto), y
 // `titleLabel`/`titleMultiline` permiten adaptar esa etiqueta a cada caso.
+// El orden se maneja solo con las flechas ▲▼ — nunca hay que escribir un número.
 const ContentItemsPanel = ({
   heading, apiPath, itemLabel = 'elemento',
   hideDescription = false, titleLabel = 'Título *', titleMultiline = false,
@@ -21,10 +22,11 @@ const ContentItemsPanel = ({
   const [form, setForm]           = useState(EMPTY_FORM);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+  const [reordering, setReordering] = useState(false);
 
   const openCreate = () => { setForm(EMPTY_FORM); setEditingId('new'); setError(''); };
   const openEdit = (item) => {
-    setForm({ title: item.title, description: item.description || '', sortOrder: item.sortOrder ?? 0 });
+    setForm({ title: item.title, description: item.description || '' });
     setEditingId(item.id);
     setError('');
   };
@@ -35,12 +37,13 @@ const ContentItemsPanel = ({
     e.preventDefault();
     setSaving(true);
     setError('');
-    const payload = { ...form, sortOrder: Number(form.sortOrder) || 0 };
     try {
       if (editingId === 'new') {
-        await authFetch(apiPath, { method: 'POST', body: JSON.stringify(payload) });
+        const nextOrder = items.length > 0 ? Math.max(...items.map(i => i.sortOrder ?? 0)) + 1 : 1;
+        await authFetch(apiPath, { method: 'POST', body: JSON.stringify({ ...form, sortOrder: nextOrder }) });
       } else {
-        await authFetch(`${apiPath}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+        const current = items.find(i => i.id === editingId);
+        await authFetch(`${apiPath}/${editingId}`, { method: 'PUT', body: JSON.stringify({ ...form, sortOrder: current?.sortOrder ?? 0 }) });
       }
       await refresh();
       closeForm();
@@ -58,6 +61,27 @@ const ContentItemsPanel = ({
       await refresh();
     } catch (err) {
       window.alert(err.message);
+    }
+  };
+
+  // Sube o baja un elemento intercambiando su orden con el vecino — así el
+  // admin nunca tiene que saber ni escribir el número de orden.
+  const move = async (index, direction) => {
+    const otherIndex = index + direction;
+    if (otherIndex < 0 || otherIndex >= items.length) return;
+    const a = items[index];
+    const b = items[otherIndex];
+    setReordering(true);
+    try {
+      await Promise.all([
+        authFetch(`${apiPath}/${a.id}`, { method: 'PUT', body: JSON.stringify({ title: a.title, description: a.description, sortOrder: b.sortOrder }) }),
+        authFetch(`${apiPath}/${b.id}`, { method: 'PUT', body: JSON.stringify({ title: b.title, description: b.description, sortOrder: a.sortOrder }) }),
+      ]);
+      await refresh();
+    } catch (err) {
+      window.alert(err.message);
+    } finally {
+      setReordering(false);
     }
   };
 
@@ -116,15 +140,11 @@ const ContentItemsPanel = ({
             </label>
           )}
 
-          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500 max-w-[160px]">
-            Orden (menor = primero)
-            <input
-              type="number"
-              value={form.sortOrder}
-              onChange={e => handleChange('sortOrder', e.target.value)}
-              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
-            />
-          </label>
+          {editingId === 'new' && (
+            <p className="text-gray-400 text-[11px] font-mono normal-case">
+              Se agrega al final de la lista — después puedes reordenarlo con las flechas ▲▼.
+            </p>
+          )}
 
           {error && <p className="text-red-500 text-[12px] font-mono">{error}</p>}
 
@@ -156,18 +176,37 @@ const ContentItemsPanel = ({
           <table className="w-full text-left">
             <thead>
               <tr className="border-b-2 border-gray-900 dark:border-white text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3">Título</th>
                 {!hideDescription && <th className="px-4 py-3">Descripción</th>}
-                <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {items.map(item => (
+              {items.map((item, i) => (
                 <tr key={item.id} className="border-b border-gray-200 dark:border-white/10 text-[13px] text-gray-900 dark:text-white">
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => move(i, -1)}
+                        disabled={i === 0 || reordering}
+                        className="text-gray-400 hover:text-leybrak-blue disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Subir"
+                      >
+                        <ArrowUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => move(i, 1)}
+                        disabled={i === items.length - 1 || reordering}
+                        className="text-gray-400 hover:text-leybrak-blue disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Bajar"
+                      >
+                        <ArrowDown size={14} />
+                      </button>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-bold whitespace-pre-line">{item.title}</td>
                   {!hideDescription && <td className="px-4 py-3 text-gray-500 max-w-md truncate">{item.description}</td>}
-                  <td className="px-4 py-3 font-mono text-gray-500">{item.sortOrder}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 justify-end">
                       <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-leybrak-blue transition-colors">
