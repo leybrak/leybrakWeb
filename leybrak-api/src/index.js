@@ -10,6 +10,10 @@ const settingsRouter    = require('./routes/settings.routes');
 const plansRouter       = require('./routes/plans.routes');
 const servicesRouter    = require('./routes/services.routes');
 const aboutValuesRouter = require('./routes/aboutValues.routes');
+const manifestoRouter   = require('./routes/manifesto.routes');
+const saasStepsRouter   = require('./routes/saasSteps.routes');
+const customStepsRouter = require('./routes/customSteps.routes');
+const problemCardsRouter = require('./routes/problemCards.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -52,6 +56,10 @@ app.use('/api/settings',     settingsRouter);
 app.use('/api/plans',        plansRouter);
 app.use('/api/services',     servicesRouter);
 app.use('/api/about-values', aboutValuesRouter);
+app.use('/api/manifesto',    manifestoRouter);
+app.use('/api/saas-steps',   saasStepsRouter);
+app.use('/api/custom-steps', customStepsRouter);
+app.use('/api/problem-cards', problemCardsRouter);
 
 // Health check — útil para saber si el servidor está vivo desde el VPS
 app.get('/health', (_, res) => {

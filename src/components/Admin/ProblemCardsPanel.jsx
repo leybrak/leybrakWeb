@@ -1,31 +1,26 @@
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useContentItems } from '../../hooks/useContentItems';
+import { useProblemCards } from '../../hooks/useProblemCards';
 
-const EMPTY_FORM = { title: '', description: '', sortOrder: 0 };
+const EMPTY_FORM = { quote: '', context: '', who: '', sortOrder: 0 };
 
-// Panel de administración genérico para listas con forma
-// (título, descripción, orden) — usado para Servicios, Valores de Nosotros,
-// el Manifiesto y los pasos de Inicio. `hideDescription` oculta el campo de
-// descripción cuando la lista solo necesita un texto (ej. el Manifiesto), y
-// `titleLabel`/`titleMultiline` permiten adaptar esa etiqueta a cada caso.
-const ContentItemsPanel = ({
-  heading, apiPath, itemLabel = 'elemento',
-  hideDescription = false, titleLabel = 'Título *', titleMultiline = false,
-}) => {
+// Panel dedicado para las tarjetas de "¿Te suena familiar?" de Inicio —
+// tienen una forma propia (frase, contexto, rubro) que no encaja en el
+// patrón genérico título/descripción usado por Servicios o Nosotros.
+const ProblemCardsPanel = () => {
   const { authFetch } = useAuth();
-  const { items, loading, refresh } = useContentItems(apiPath);
+  const { cards, loading, refresh } = useProblemCards();
 
-  const [editingId, setEditingId] = useState(null); // null = cerrado, 'new' = creando
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm]           = useState(EMPTY_FORM);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
 
   const openCreate = () => { setForm(EMPTY_FORM); setEditingId('new'); setError(''); };
-  const openEdit = (item) => {
-    setForm({ title: item.title, description: item.description || '', sortOrder: item.sortOrder ?? 0 });
-    setEditingId(item.id);
+  const openEdit = (card) => {
+    setForm({ quote: card.quote, context: card.context || '', who: card.who || '', sortOrder: card.sortOrder ?? 0 });
+    setEditingId(card.id);
     setError('');
   };
   const closeForm = () => { setEditingId(null); setError(''); };
@@ -38,9 +33,9 @@ const ContentItemsPanel = ({
     const payload = { ...form, sortOrder: Number(form.sortOrder) || 0 };
     try {
       if (editingId === 'new') {
-        await authFetch(apiPath, { method: 'POST', body: JSON.stringify(payload) });
+        await authFetch('/api/problem-cards', { method: 'POST', body: JSON.stringify(payload) });
       } else {
-        await authFetch(`${apiPath}/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+        await authFetch(`/api/problem-cards/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
       }
       await refresh();
       closeForm();
@@ -51,10 +46,10 @@ const ContentItemsPanel = ({
     }
   };
 
-  const handleDelete = async (item) => {
-    if (!window.confirm(`¿Eliminar "${item.title}"?`)) return;
+  const handleDelete = async (card) => {
+    if (!window.confirm('¿Eliminar esta tarjeta?')) return;
     try {
-      await authFetch(`${apiPath}/${item.id}`, { method: 'DELETE' });
+      await authFetch(`/api/problem-cards/${card.id}`, { method: 'DELETE' });
       await refresh();
     } catch (err) {
       window.alert(err.message);
@@ -64,12 +59,12 @@ const ContentItemsPanel = ({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-black uppercase text-gray-900 dark:text-white">{heading}</h2>
+        <h2 className="text-xl font-black uppercase text-gray-900 dark:text-white">Tarjetas de "¿Te suena familiar?"</h2>
         <button
           onClick={openCreate}
           className="flex items-center gap-2 bg-leybrak-blue text-white px-4 py-2.5 text-[12px] font-bold uppercase tracking-widest border-2 border-leybrak-blue hover:bg-transparent hover:text-leybrak-blue transition-all duration-200"
         >
-          <Plus size={15} /> Nuevo
+          <Plus size={15} /> Nueva
         </button>
       </div>
 
@@ -77,7 +72,7 @@ const ContentItemsPanel = ({
         <form onSubmit={handleSubmit} className="border-2 border-gray-900 dark:border-white bg-white dark:bg-[#0f0f12] p-6 flex flex-col gap-4 max-w-xl">
           <div className="flex items-center justify-between">
             <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-leybrak-blue">
-              {editingId === 'new' ? 'NUEVO' : 'EDITAR'}
+              {editingId === 'new' ? 'NUEVA' : 'EDITAR'}
             </span>
             <button type="button" onClick={closeForm} className="text-gray-400 hover:text-gray-900 dark:hover:text-white">
               <X size={18} />
@@ -85,36 +80,35 @@ const ContentItemsPanel = ({
           </div>
 
           <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-            {titleLabel}
-            {titleMultiline ? (
-              <textarea
-                value={form.title}
-                onChange={e => handleChange('title', e.target.value)}
-                required
-                rows={2}
-                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
-              />
-            ) : (
-              <input
-                value={form.title}
-                onChange={e => handleChange('title', e.target.value)}
-                required
-                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
-              />
-            )}
+            Frase (la queja, en primera persona) *
+            <textarea
+              value={form.quote}
+              onChange={e => handleChange('quote', e.target.value)}
+              required
+              rows={2}
+              placeholder={'No sé cuánto\nvendí hoy.'}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
+            />
           </label>
 
-          {!hideDescription && (
-            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-              Descripción
-              <textarea
-                value={form.description}
-                onChange={e => handleChange('description', e.target.value)}
-                rows={3}
-                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none"
-              />
-            </label>
-          )}
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            Contexto (explica el problema)
+            <textarea
+              value={form.context}
+              onChange={e => handleChange('context', e.target.value)}
+              rows={2}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            Rubro (ej. Restaurante · Tienda · Bodega)
+            <input
+              value={form.who}
+              onChange={e => handleChange('who', e.target.value)}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none normal-case"
+            />
+          </label>
 
           <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500 max-w-[160px]">
             Orden (menor = primero)
@@ -150,30 +144,30 @@ const ContentItemsPanel = ({
       <div className="border-2 border-gray-900 dark:border-white bg-white dark:bg-[#0f0f12] overflow-x-auto">
         {loading ? (
           <p className="p-6 text-gray-500 font-mono text-[13px]">Cargando...</p>
-        ) : items.length === 0 ? (
-          <p className="p-6 text-gray-500 font-mono text-[13px]">Todavía no hay ningún {itemLabel}. Crea el primero.</p>
+        ) : cards.length === 0 ? (
+          <p className="p-6 text-gray-500 font-mono text-[13px]">Todavía no hay ninguna tarjeta. Crea la primera.</p>
         ) : (
           <table className="w-full text-left">
             <thead>
               <tr className="border-b-2 border-gray-900 dark:border-white text-[10px] font-mono uppercase tracking-widest text-gray-500">
-                <th className="px-4 py-3">Título</th>
-                {!hideDescription && <th className="px-4 py-3">Descripción</th>}
+                <th className="px-4 py-3">Frase</th>
+                <th className="px-4 py-3">Rubro</th>
                 <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {items.map(item => (
-                <tr key={item.id} className="border-b border-gray-200 dark:border-white/10 text-[13px] text-gray-900 dark:text-white">
-                  <td className="px-4 py-3 font-bold whitespace-pre-line">{item.title}</td>
-                  {!hideDescription && <td className="px-4 py-3 text-gray-500 max-w-md truncate">{item.description}</td>}
-                  <td className="px-4 py-3 font-mono text-gray-500">{item.sortOrder}</td>
+              {cards.map(card => (
+                <tr key={card.id} className="border-b border-gray-200 dark:border-white/10 text-[13px] text-gray-900 dark:text-white">
+                  <td className="px-4 py-3 font-bold whitespace-pre-line">{card.quote}</td>
+                  <td className="px-4 py-3 text-gray-500">{card.who}</td>
+                  <td className="px-4 py-3 font-mono text-gray-500">{card.sortOrder}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 justify-end">
-                      <button onClick={() => openEdit(item)} className="text-gray-400 hover:text-leybrak-blue transition-colors">
+                      <button onClick={() => openEdit(card)} className="text-gray-400 hover:text-leybrak-blue transition-colors">
                         <Pencil size={16} />
                       </button>
-                      <button onClick={() => handleDelete(item)} className="text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => handleDelete(card)} className="text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -188,4 +182,4 @@ const ContentItemsPanel = ({
   );
 };
 
-export default ContentItemsPanel;
+export default ProblemCardsPanel;

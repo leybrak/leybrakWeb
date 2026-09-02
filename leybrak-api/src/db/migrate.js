@@ -148,6 +148,67 @@ const createTables = async () => {
     CREATE TRIGGER about_values_updated_at
       BEFORE UPDATE ON about_values
       FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── "Lo que creemos" del Hero de Inicio (panel con typewriter) ──────────────
+    CREATE TABLE IF NOT EXISTS manifesto_items (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title         VARCHAR(300) NOT NULL,
+      description   TEXT         NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS manifesto_items_updated_at ON manifesto_items;
+    CREATE TRIGGER manifesto_items_updated_at
+      BEFORE UPDATE ON manifesto_items
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Pasos del camino "Productos listos" en Inicio ───────────────────────────
+    CREATE TABLE IF NOT EXISTS saas_steps (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title         VARCHAR(160) NOT NULL,
+      description   TEXT         NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS saas_steps_updated_at ON saas_steps;
+    CREATE TRIGGER saas_steps_updated_at
+      BEFORE UPDATE ON saas_steps
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Pasos del camino "A tu medida" en Inicio ─────────────────────────────────
+    CREATE TABLE IF NOT EXISTS custom_steps (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title         VARCHAR(160) NOT NULL,
+      description   TEXT         NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS custom_steps_updated_at ON custom_steps;
+    CREATE TRIGGER custom_steps_updated_at
+      BEFORE UPDATE ON custom_steps
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Tarjetas de "¿Te suena familiar?" en Inicio ─────────────────────────────
+    CREATE TABLE IF NOT EXISTS problem_cards (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      quote         TEXT         NOT NULL,
+      context       TEXT         NOT NULL DEFAULT '',
+      who           VARCHAR(160) NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS problem_cards_updated_at ON problem_cards;
+    CREATE TRIGGER problem_cards_updated_at
+      BEFORE UPDATE ON problem_cards
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
   `;
 
   try {
@@ -159,6 +220,10 @@ const createTables = async () => {
     await seedPlans();
     await seedServices();
     await seedAboutValues();
+    await seedManifestoItems();
+    await seedSaasSteps();
+    await seedCustomSteps();
+    await seedProblemCards();
     await seedAdmin();
   } catch (err) {
     console.error('❌ Error creando tablas:', err.message);
@@ -191,6 +256,39 @@ const seedSettings = async () => {
     about_team_text:       '',
     descargas_subtitle:    'Todas las apps de Leybrak listas para instalar. Iremos sumando cada nuevo sistema aquí a medida que esté disponible.',
     descargas_empty_text:  'Todavía no hay descargas disponibles. Vuelve pronto.',
+
+    // Hero (Inicio)
+    hero_label:              'Para negocios que quieren crecer de verdad',
+    hero_heading_start:      'De libreta',
+    hero_heading_highlight:  'sistema',
+    hero_heading_end:        'en semanas.',
+    hero_description_before: 'Si todavía usas papel, WhatsApp o Excel para manejar tu negocio, no estás solo.',
+    hero_description_bold:   'Te ayudamos a digitalizar tu operación sin complicarte la vida',
+    hero_description_after:  ', para que sepas exactamente qué pasa en tu negocio, desde donde estés.',
+    hero_button_primary:     'Quiero digitalizar mi negocio',
+    hero_button_secondary:   'Ver cómo funciona',
+
+    // Problemas (Inicio)
+    problems_label:              'Lo que escuchamos todos los días',
+    problems_heading_start:      '¿Te suena',
+    problems_heading_highlight:  'familiar?',
+    problems_subtitle:           'Estos no son problemas de tecnología. Son problemas de tiempo, de plata y de paz mental. Y tienen solución.',
+    problems_cta_start:          'Si alguno de estos te llegó,',
+    problems_cta_highlight:      'tenemos la solución.',
+
+    // Cómo funciona (Inicio)
+    howitworks_label:             'Sin complicaciones',
+    howitworks_heading_start:     '¿Cómo',
+    howitworks_heading_highlight: 'empezamos?',
+    howitworks_saas_badge:        'Productos listos',
+    howitworks_saas_subtitle:     'Para cuando quieres empezar ya.',
+    howitworks_saas_tag:          'Operativo en menos de 48 horas',
+    howitworks_saas_cta:          'Ver productos disponibles',
+    howitworks_custom_badge:      'A tu medida',
+    howitworks_custom_subtitle:   'Para cuando lo estándar no alcanza.',
+    howitworks_custom_tag:        'Diagnóstico inicial sin costo',
+    howitworks_custom_cta:        'Agendar diagnóstico gratis',
+    howitworks_footer_note:       '// En cualquier caso — sin contratos largos, sin letra chica',
   };
 
   for (const [key, value] of Object.entries(defaults)) {
@@ -344,6 +442,89 @@ const seedAboutValues = async () => {
     );
   }
   console.log('✅ Valores de "Nosotros" iniciales cargados');
+};
+
+// ── "Lo que creemos" del Hero de Inicio, para que el admin ya lo vea listo ────
+const seedManifestoItems = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM manifesto_items');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const items = [
+    'Todo negocio merece tecnología de calidad,\nno solo las grandes empresas.',
+    'El papel y el Excel tienen fecha de\nvencimiento. Ya venció.',
+    'No vendemos software.\nVendemos control sobre tu negocio.',
+    'Sin contratos eternos.\nSin letra chica. Sin excusas.',
+  ];
+
+  for (let i = 0; i < items.length; i++) {
+    await pool.query(
+      `INSERT INTO manifesto_items (title, sort_order) VALUES ($1, $2)`,
+      [items[i], i + 1]
+    );
+  }
+  console.log('✅ Manifiesto inicial cargado');
+};
+
+// ── Pasos del camino SaaS de Inicio, para que el admin ya los vea listos ──────
+const seedSaasSteps = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM saas_steps');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const steps = [
+    { title: 'Elige tu producto', description: 'POS, inventario, reservas... tenemos módulos listos para el tipo de negocio que tienes.' },
+    { title: 'Lo configuramos juntos', description: 'En menos de 48 horas dejamos todo listo con tus productos, precios y equipo.' },
+    { title: 'Empiezas desde el día 1', description: 'Te acompañamos los primeros días para que tú y tu equipo lo dominen sin estrés.' },
+  ];
+
+  for (let i = 0; i < steps.length; i++) {
+    await pool.query(
+      `INSERT INTO saas_steps (title, description, sort_order) VALUES ($1, $2, $3)`,
+      [steps[i].title, steps[i].description, i + 1]
+    );
+  }
+  console.log('✅ Pasos del camino SaaS cargados');
+};
+
+// ── Pasos del camino a medida de Inicio, para que el admin ya los vea listos ──
+const seedCustomSteps = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM custom_steps');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const steps = [
+    { title: 'Diagnóstico gratis', description: 'Nos sentamos contigo, entendemos cómo trabajas y detectamos dónde estás perdiendo tiempo o plata.' },
+    { title: 'Diseñamos la solución', description: 'Te presentamos exactamente qué vamos a construir, cuánto cuesta y en cuánto tiempo.' },
+    { title: 'Desarrollamos sin sorpresas', description: 'Fechas claras, avances visibles. Tú ves el progreso semana a semana.' },
+    { title: 'Lanzamos y capacitamos', description: 'Tu equipo aprende a usarlo antes del lanzamiento. Salimos en vivo cuando estés listo.' },
+  ];
+
+  for (let i = 0; i < steps.length; i++) {
+    await pool.query(
+      `INSERT INTO custom_steps (title, description, sort_order) VALUES ($1, $2, $3)`,
+      [steps[i].title, steps[i].description, i + 1]
+    );
+  }
+  console.log('✅ Pasos del camino a medida cargados');
+};
+
+// ── Tarjetas de "¿Te suena familiar?" de Inicio, ya listas para el admin ──────
+const seedProblemCards = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM problem_cards');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const cards = [
+    { quote: 'No sé cuánto\nvendí hoy.', context: 'Al final del día tienes la caja llena pero no sabes de dónde vino cada peso.', who: 'Restaurante · Tienda · Bodega' },
+    { quote: 'Siempre me\nfalta stock.', context: 'Descubres que te quedaste sin producto cuando el cliente ya está parado frente a ti.', who: 'Retail · Farmacia · Ferretería' },
+    { quote: 'Todo lo anoto\nen un cuaderno.', context: 'Entre tachones, páginas arrancadas y letras ilegibles, la información se pierde.', who: 'Hostal · Peluquería · Taller' },
+    { quote: 'Mis empleados\nme fallan y no me entero.', context: 'Sin registro digital no sabes qué pasó en tu negocio cuando no estabas.', who: 'Cualquier negocio con personal' },
+  ];
+
+  for (let i = 0; i < cards.length; i++) {
+    await pool.query(
+      `INSERT INTO problem_cards (quote, context, who, sort_order) VALUES ($1, $2, $3, $4)`,
+      [cards[i].quote, cards[i].context, cards[i].who, i + 1]
+    );
+  }
+  console.log('✅ Tarjetas de problemas cargadas');
 };
 
 // ── Usuario admin inicial, tomado de las variables de entorno ─────────────────

@@ -4,9 +4,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { Zap, Settings, ArrowRight, Check } from 'lucide-react';
 import { useScrollTo } from '../hooks/useScrollTo';
 import { Link } from 'react-router-dom';
+import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useContentItems } from '../hooks/useContentItems';
 gsap.registerPlugin(ScrollTrigger);
 
-const SAAS_STEPS = [
+const DEFAULT_SAAS_STEPS = [
   {
     num: '01',
     title: 'Elige tu producto',
@@ -24,7 +26,7 @@ const SAAS_STEPS = [
   },
 ];
 
-const CUSTOM_STEPS = [
+const DEFAULT_CUSTOM_STEPS = [
   {
     num: '01',
     title: 'Diagnóstico gratis',
@@ -58,6 +60,12 @@ const HowItWorks = () => {
   const dividerRef   = useRef(null);
   const [activeTrack, setActiveTrack] = useState(null);
   const scrollTo = useScrollTo();
+  const { settings } = useSiteSettings();
+  const { items: fetchedSaasSteps }   = useContentItems('/api/saas-steps');
+  const { items: fetchedCustomSteps } = useContentItems('/api/custom-steps');
+  const toSteps = (items) => items.map((it, i) => ({ num: String(i + 1).padStart(2, '0'), title: it.title, desc: it.description }));
+  const SAAS_STEPS   = fetchedSaasSteps.length > 0   ? toSteps(fetchedSaasSteps)   : DEFAULT_SAAS_STEPS;
+  const CUSTOM_STEPS = fetchedCustomSteps.length > 0 ? toSteps(fetchedCustomSteps) : DEFAULT_CUSTOM_STEPS;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -207,7 +215,7 @@ const HowItWorks = () => {
             <span
               className="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold"
             >
-              Sin complicaciones
+              {settings.howitworks_label}
             </span>
           </div>
 
@@ -215,9 +223,9 @@ const HowItWorks = () => {
             ref={headingRef}
             className="text-[clamp(2.8rem,7vw,5.5rem)] font-black uppercase leading-[0.9] tracking-tight text-gray-900 dark:text-white"
           >
-            ¿Cómo{' '}
+            {settings.howitworks_heading_start}{' '}
             <span className="inline-block -skew-x-3 bg-leybrak-blue text-white px-3 pb-1">
-              empezamos?
+              {settings.howitworks_heading_highlight}
             </span>
           </h2>
         </div>
@@ -238,11 +246,11 @@ const HowItWorks = () => {
                 <div className="flex items-center gap-2 mb-1">
                   <Zap size={14} className="text-white" />
                   <span className="text-white text-[10px] font-bold tracking-[0.2em] uppercase font-mono">
-                    Productos listos
+                    {settings.howitworks_saas_badge}
                   </span>
                 </div>
                 <p className="text-white/80 text-[0.82rem]" style={{ fontFamily: "'Barlow', sans-serif" }}>
-                  Para cuando quieres empezar ya.
+                  {settings.howitworks_saas_subtitle}
                 </p>
               </div>
               <div className="text-white/20 font-black text-5xl leading-none">A</div>
@@ -284,7 +292,7 @@ const HowItWorks = () => {
               <div className="flex items-center gap-3 pt-2 border-t-2 border-gray-100 dark:border-gray-800 mt-2">
                 <Check size={14} className="text-leybrak-blue flex-shrink-0" />
                 <span className="text-[11px] font-bold tracking-[0.1em] uppercase text-gray-500 dark:text-gray-400 font-mono">
-                  Operativo en menos de 48 horas
+                  {settings.howitworks_saas_tag}
                 </span>
               </div>
 
@@ -294,7 +302,7 @@ const HowItWorks = () => {
                 className="mt-6 w-full flex items-center justify-center gap-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3.5 text-[13px] font-bold uppercase tracking-widest border-2 border-gray-900 dark:border-white hover:bg-leybrak-blue hover:border-leybrak-blue dark:hover:bg-leybrak-blue dark:hover:border-leybrak-blue hover:text-white transition-all duration-200 group"
                 style={{ boxShadow: '4px 4px 0px #2563eb' }}
               >
-                Ver productos disponibles
+                {settings.howitworks_saas_cta}
                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </div>
@@ -327,11 +335,11 @@ const HowItWorks = () => {
                 <div className="flex items-center gap-2 mb-1">
                   <Settings size={14} className="text-white dark:text-gray-900" />
                   <span className="text-white dark:text-gray-900 text-[10px] font-bold tracking-[0.2em] uppercase font-mono">
-                    A tu medida
+                    {settings.howitworks_custom_badge}
                   </span>
                 </div>
                 <p className="text-gray-400 dark:text-gray-600 text-[0.82rem]" style={{ fontFamily: "'Barlow', sans-serif" }}>
-                  Para cuando lo estándar no alcanza.
+                  {settings.howitworks_custom_subtitle}
                 </p>
               </div>
               <div className="text-white/10 dark:text-gray-900/10 font-black text-5xl leading-none">B</div>
@@ -371,7 +379,7 @@ const HowItWorks = () => {
               <div className="flex items-center gap-3 pt-2 border-t-2 border-gray-100 dark:border-gray-800 mt-2">
                 <Check size={14} className="text-gray-500 flex-shrink-0" />
                 <span className="text-[11px] font-bold tracking-[0.1em] uppercase text-gray-500 dark:text-gray-400 font-mono">
-                  Diagnóstico inicial sin costo
+                  {settings.howitworks_custom_tag}
                 </span>
               </div>
 
@@ -381,7 +389,7 @@ const HowItWorks = () => {
                 className="mt-6 w-full flex items-center justify-center gap-3 bg-transparent text-gray-900 dark:text-white px-6 py-3.5 text-[13px] font-bold uppercase tracking-widest border-2 border-gray-900 dark:border-white hover:bg-gray-900 dark:hover:bg-white hover:text-white dark:hover:text-gray-900 transition-all duration-200 group"
                 style={{ boxShadow: '4px 4px 0px rgba(0,0,0,0.15)' }}
               >
-                Agendar diagnóstico gratis
+                {settings.howitworks_custom_cta}
                 <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
@@ -393,7 +401,7 @@ const HowItWorks = () => {
         <p
           className="text-center text-gray-400 dark:text-gray-600 text-[0.78rem] mt-8 font-mono tracking-wide uppercase"
         >
-          // En cualquier caso — sin contratos largos, sin letra chica
+          {settings.howitworks_footer_note}
         </p>
 
       </div>
