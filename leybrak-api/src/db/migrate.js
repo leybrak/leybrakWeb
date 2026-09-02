@@ -232,8 +232,14 @@ const seedPlans = async () => {
   const { rows } = await pool.query('SELECT COUNT(*) FROM product_plans');
   if (parseInt(rows[0].count) > 0) return;
 
-  const product = await pool.query(`SELECT id FROM products WHERE sys_name = 'BRAVA_POS' LIMIT 1`);
-  if (product.rowCount === 0) return;
+  // Busca por el sys_name original o por el título — por si ya lo renombraste desde el panel.
+  const product = await pool.query(
+    `SELECT id FROM products WHERE sys_name = 'BRAVA_POS' OR title = 'SaaS Gastronómico' LIMIT 1`
+  );
+  if (product.rowCount === 0) {
+    console.warn('⚠️  No se encontró el producto "SaaS Gastronómico" — crea los planes manualmente desde /admin.');
+    return;
+  }
   const productId = product.rows[0].id;
 
   const plans = [
