@@ -21,6 +21,8 @@ const ALLOWED_KEYS = [
   'about_sectores',
   'about_values_heading',
   'about_team_text',
+  'descargas_subtitle',
+  'descargas_empty_text',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────

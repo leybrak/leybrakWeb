@@ -22,6 +22,13 @@ const PAGE_GROUPS = [
       { key: 'servicios_cta_button',   label: 'Texto del botón', type: 'input' },
     ],
   },
+  {
+    page: 'Descargas',
+    fields: [
+      { key: 'descargas_subtitle',    label: 'Subtítulo (debajo del título)', type: 'textarea' },
+      { key: 'descargas_empty_text',  label: 'Texto cuando no hay ninguna descarga disponible', type: 'textarea' },
+    ],
+  },
 ];
 
 const PageCopyPanel = () => {
