@@ -1,10 +1,12 @@
 import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useProblemCards } from '../hooks/useProblemCards';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PROBLEMS = [
+const DEFAULT_PROBLEMS = [
   {
     id: '01',
     quote: 'No sé cuánto\nvendí hoy.',
@@ -38,6 +40,9 @@ const Problems = () => {
   const subRef       = useRef(null);
   const cardsRef     = useRef([]);
   const ctaRef       = useRef(null);
+  const { settings } = useSiteSettings();
+  const { cards: fetchedCards } = useProblemCards();
+  const PROBLEMS = fetchedCards.length > 0 ? fetchedCards : DEFAULT_PROBLEMS;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -156,7 +161,7 @@ const Problems = () => {
               className="inline-flex items-center gap-2 bg-white text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold"
               style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
             >
-              Lo que escuchamos todos los días
+              {settings.problems_label}
             </span>
           </div>
 
@@ -164,11 +169,11 @@ const Problems = () => {
             ref={headingRef}
             className="text-[clamp(2.8rem,7vw,5.5rem)] font-black uppercase leading-[0.9] tracking-tight text-white mb-6"
           >
-            ¿Te suena{' '}
+            {settings.problems_heading_start}{' '}
             <span
               className="inline-block -skew-x-3 bg-leybrak-blue px-3 pb-1"
             >
-              familiar?
+              {settings.problems_heading_highlight}
             </span>
           </h2>
 
@@ -177,8 +182,7 @@ const Problems = () => {
             className="text-gray-400 text-[1rem] max-w-lg leading-relaxed border-l-2 border-gray-700 pl-4"
             style={{ fontFamily: "'Barlow', sans-serif" }}
           >
-            Estos no son problemas de tecnología. Son problemas de tiempo,
-            de plata y de paz mental. Y tienen solución.
+            {settings.problems_subtitle}
           </p>
         </div>
 
@@ -195,7 +199,7 @@ const Problems = () => {
               <span
                 className="text-[11px] font-bold font-mono text-white/20 tracking-[0.2em] mb-6 block"
               >
-                {p.id}
+                {String(i + 1).padStart(2, '0')}
               </span>
 
               {/* Quote — el dolor */}
@@ -238,8 +242,8 @@ const Problems = () => {
           <p
             className="text-white text-[1.2rem] font-black uppercase tracking-tight max-w-md"
           >
-            Si alguno de estos te llegó,{' '}
-            <span className="text-leybrak-blue">tenemos la solución.</span>
+            {settings.problems_cta_start}{' '}
+            <span className="text-leybrak-blue">{settings.problems_cta_highlight}</span>
           </p>
         </div>
 

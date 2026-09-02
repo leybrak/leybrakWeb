@@ -99,12 +99,34 @@ const contentItemRules = [
   body('title')
     .trim()
     .notEmpty().withMessage('El título es requerido')
-    .isLength({ max: 160 }).withMessage('El título no puede superar los 160 caracteres'),
+    .isLength({ max: 300 }).withMessage('El título no puede superar los 300 caracteres'),
 
   body('description')
     .optional()
     .trim()
     .isLength({ max: 2000 }).withMessage('La descripción no puede superar los 2000 caracteres'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
+// ── Reglas para crear/editar tarjetas de problemas de Inicio ──────────────────
+const problemCardRules = [
+  body('quote')
+    .trim()
+    .notEmpty().withMessage('La frase es requerida')
+    .isLength({ max: 300 }).withMessage('La frase no puede superar los 300 caracteres'),
+
+  body('context')
+    .optional()
+    .trim()
+    .isLength({ max: 500 }).withMessage('El contexto no puede superar los 500 caracteres'),
+
+  body('who')
+    .optional()
+    .trim()
+    .isLength({ max: 160 }).withMessage('El rubro no puede superar los 160 caracteres'),
 
   body('sortOrder')
     .optional()
@@ -123,4 +145,4 @@ const validate = (req, res, next) => {
   next();
 };
 
-module.exports = { leadRules, productRules, planRules, contentItemRules, validate };
+module.exports = { leadRules, productRules, planRules, contentItemRules, problemCardRules, validate };

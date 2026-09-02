@@ -30,6 +30,36 @@ export const DEFAULT_SETTINGS = {
   about_team_text:       '',
   descargas_subtitle:    'Todas las apps de Leybrak listas para instalar. Iremos sumando cada nuevo sistema aquí a medida que esté disponible.',
   descargas_empty_text:  'Todavía no hay descargas disponibles. Vuelve pronto.',
+
+  hero_label:              'Para negocios que quieren crecer de verdad',
+  hero_heading_start:      'De libreta',
+  hero_heading_highlight:  'sistema',
+  hero_heading_end:        'en semanas.',
+  hero_description_before: 'Si todavía usas papel, WhatsApp o Excel para manejar tu negocio, no estás solo.',
+  hero_description_bold:   'Te ayudamos a digitalizar tu operación sin complicarte la vida',
+  hero_description_after:  ', para que sepas exactamente qué pasa en tu negocio, desde donde estés.',
+  hero_button_primary:     'Quiero digitalizar mi negocio',
+  hero_button_secondary:   'Ver cómo funciona',
+
+  problems_label:              'Lo que escuchamos todos los días',
+  problems_heading_start:      '¿Te suena',
+  problems_heading_highlight:  'familiar?',
+  problems_subtitle:           'Estos no son problemas de tecnología. Son problemas de tiempo, de plata y de paz mental. Y tienen solución.',
+  problems_cta_start:          'Si alguno de estos te llegó,',
+  problems_cta_highlight:      'tenemos la solución.',
+
+  howitworks_label:             'Sin complicaciones',
+  howitworks_heading_start:     '¿Cómo',
+  howitworks_heading_highlight: 'empezamos?',
+  howitworks_saas_badge:        'Productos listos',
+  howitworks_saas_subtitle:     'Para cuando quieres empezar ya.',
+  howitworks_saas_tag:          'Operativo en menos de 48 horas',
+  howitworks_saas_cta:          'Ver productos disponibles',
+  howitworks_custom_badge:      'A tu medida',
+  howitworks_custom_subtitle:   'Para cuando lo estándar no alcanza.',
+  howitworks_custom_tag:        'Diagnóstico inicial sin costo',
+  howitworks_custom_cta:        'Agendar diagnóstico gratis',
+  howitworks_footer_note:       '// En cualquier caso — sin contratos largos, sin letra chica',
 };
 
 export const SiteSettingsProvider = ({ children }) => {

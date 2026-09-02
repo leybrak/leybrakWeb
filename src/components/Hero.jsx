@@ -2,8 +2,10 @@ import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ArrowRight } from 'lucide-react';
 import { useScrollTo } from '../hooks/useScrollTo';
+import { useSiteSettings } from '../hooks/useSiteSettings';
+import { useContentItems } from '../hooks/useContentItems';
 
-const MANIFESTO = [
+const DEFAULT_MANIFESTO = [
   { num: '01', line: 'Todo negocio merece tecnología de calidad,\nno solo las grandes empresas.' },
   { num: '02', line: 'El papel y el Excel tienen fecha de\nvencimiento. Ya venció.' },
   { num: '03', line: 'No vendemos software.\nVendemos control sobre tu negocio.' },
@@ -20,6 +22,11 @@ const Hero = () => {
   const manifestoRefs = useRef([]);
   const activeLineRef = useRef(0);
   const scrollTo      = useScrollTo();
+  const { settings }  = useSiteSettings();
+  const { items: fetchedManifesto } = useContentItems('/api/manifesto');
+  const MANIFESTO = fetchedManifesto.length > 0
+    ? fetchedManifesto.map((m, i) => ({ num: String(i + 1).padStart(2, '0'), line: m.title }))
+    : DEFAULT_MANIFESTO;
 
   // ── Entrada GSAP ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -62,13 +69,17 @@ const Hero = () => {
       }, 38);
     };
 
+    activeLineRef.current = 0;
     typewriteLine(0);
     const interval = setInterval(() => {
       activeLineRef.current = (activeLineRef.current + 1) % MANIFESTO.length;
       typewriteLine(activeLineRef.current);
     }, 3200);
     return () => clearInterval(interval);
-  }, []);
+    // Se re-arma cuando llegan las frases reales de la API (fetchedManifesto),
+    // no cuando cambia MANIFESTO — esa referencia es nueva en cada render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchedManifesto]);
 
   return (
     <section
@@ -106,22 +117,22 @@ const Hero = () => {
 
           <div ref={labelRef} className="mb-6">
             <span className="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold">
-              Para negocios que quieren crecer de verdad
+              {settings.hero_label}
             </span>
           </div>
 
           <h1 className="text-[clamp(3.2rem,9vw,6.5rem)] font-black uppercase leading-[0.88] tracking-tight mb-8 text-gray-900 dark:text-white">
             <div className="overflow-hidden pb-1">
-              <span ref={el => titleLinesRef.current[0] = el} className="block italic">De libreta</span>
+              <span ref={el => titleLinesRef.current[0] = el} className="block italic">{settings.hero_heading_start}</span>
             </div>
             <div className="overflow-hidden pb-1">
               <span ref={el => titleLinesRef.current[1] = el} className="block">
-                a <span className="inline-block -skew-x-6 bg-leybrak-blue text-white px-3 pb-1">sistema</span>
+                a <span className="inline-block -skew-x-6 bg-leybrak-blue text-white px-3 pb-1">{settings.hero_heading_highlight}</span>
               </span>
             </div>
             <div className="overflow-hidden pb-1">
               <span ref={el => titleLinesRef.current[2] = el} className="block text-transparent" style={{ WebkitTextStroke: '2.5px currentColor' }}>
-                en semanas.
+                {settings.hero_heading_end}
                 <span className="cursor-blink text-leybrak-blue ml-1" style={{ WebkitTextStroke: 0 }}>_</span>
               </span>
             </div>
@@ -129,11 +140,11 @@ const Hero = () => {
 
           <p ref={descRef} className="text-[1.05rem] text-gray-600 dark:text-gray-400 max-w-lg mb-10 leading-relaxed border-l-2 border-gray-300 dark:border-gray-700 pl-4"
              style={{ fontFamily: "'Barlow', sans-serif" }}>
-            Si todavía usas papel, WhatsApp o Excel para manejar tu negocio, no estás solo.{' '}
+            {settings.hero_description_before}{' '}
             <strong className="text-gray-900 dark:text-white font-semibold">
-              Te ayudamos a digitalizar tu operación sin complicarte la vida
+              {settings.hero_description_bold}
             </strong>
-            , para que sepas exactamente qué pasa en tu negocio, desde donde estés.
+            {settings.hero_description_after}
           </p>
 
           <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4">
@@ -143,7 +154,7 @@ const Hero = () => {
               className="btn-brutal flex items-center justify-center gap-3 bg-leybrak-blue text-white px-8 py-4 font-bold uppercase tracking-widest text-sm border-2 border-gray-900 dark:border-transparent"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.12em', boxShadow: '5px 5px 0px #111827' }}
             >
-              Quiero digitalizar mi negocio
+              {settings.hero_button_primary}
             </button>
 
             {/* ── Secundario → scroll a Cómo funciona ── */}
@@ -152,7 +163,7 @@ const Hero = () => {
               className="btn-brutal btn-brutal-outline flex items-center justify-center gap-3 bg-transparent text-gray-900 dark:text-white px-8 py-4 font-bold uppercase tracking-widest text-sm border-2 border-gray-900 dark:border-white group"
               style={{ fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: '0.12em', boxShadow: '5px 5px 0px #111827' }}
             >
-              Ver cómo funciona
+              {settings.hero_button_secondary}
               <ArrowRight size={16} className="group-hover:translate-x-1.5 transition-transform duration-200" />
             </button>
           </div>
