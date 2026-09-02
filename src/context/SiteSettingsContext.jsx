@@ -24,6 +24,10 @@ export const DEFAULT_SETTINGS = {
   servicios_cta_text:    'Te hacemos un diagnóstico gratuito. Nos cuentas cómo trabajas y te decimos qué necesitas — sin venderte nada que no sea útil.',
   servicios_cta_tag:     'Diagnóstico gratuito, sin compromiso.',
   servicios_cta_button:  'Quiero el diagnóstico',
+  about_negocios:        '1',
+  about_sectores:        '1',
+  about_values_heading:  'Lo que nos mueve',
+  about_team_text:       '',
 };
 
 export const SiteSettingsProvider = ({ children }) => {

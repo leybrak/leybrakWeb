@@ -17,6 +17,10 @@ const ALLOWED_KEYS = [
   'servicios_cta_text',
   'servicios_cta_tag',
   'servicios_cta_button',
+  'about_negocios',
+  'about_sectores',
+  'about_values_heading',
+  'about_team_text',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────
