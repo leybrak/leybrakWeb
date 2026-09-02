@@ -12,6 +12,11 @@ const ALLOWED_KEYS = [
   'about_city',
   'about_mission',
   'softwares_subtitle',
+  'servicios_subtitle',
+  'servicios_cta_heading',
+  'servicios_cta_text',
+  'servicios_cta_tag',
+  'servicios_cta_button',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────
