@@ -180,6 +180,11 @@ const seedSettings = async () => {
     about_city:      'Lima, Perú',
     about_mission:   'Hacer que la tecnología sea accesible para cualquier negocio, sin importar su tamaño.',
     softwares_subtitle: 'Tres soluciones para tres necesidades distintas. Elige la que encaja con tu negocio hoy.',
+    servicios_subtitle: 'No importa en qué punto está tu negocio hoy. Tenemos un servicio para acompañarte desde el primer paso hasta la operación completa.',
+    servicios_cta_heading: '¿No sabes por dónde empezar?',
+    servicios_cta_text:    'Te hacemos un diagnóstico gratuito. Nos cuentas cómo trabajas y te decimos qué necesitas — sin venderte nada que no sea útil.',
+    servicios_cta_tag:     'Diagnóstico gratuito, sin compromiso.',
+    servicios_cta_button:  'Quiero el diagnóstico',
   };
 
   for (const [key, value] of Object.entries(defaults)) {

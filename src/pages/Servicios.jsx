@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import { ArrowRight } from 'lucide-react';
 import { useScrollTo } from '../hooks/useScrollTo';
 import { useContentItems } from '../hooks/useContentItems';
+import { useSiteSettings } from '../hooks/useSiteSettings';
 
 const Servicios = () => {
   const headerRef  = useRef(null);
@@ -11,6 +12,7 @@ const Servicios = () => {
   const ctaRef     = useRef(null);
   const scrollTo = useScrollTo();
   const { items: services } = useContentItems('/api/services');
+  const { settings } = useSiteSettings();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -84,7 +86,7 @@ const Servicios = () => {
             className="text-[1rem] text-gray-600 dark:text-gray-400 leading-relaxed border-l-2 border-gray-300 dark:border-gray-700 pl-4"
             style={{ fontFamily: "'Barlow', sans-serif" }}
           >
-            No importa en qué punto está tu negocio hoy. Tenemos un servicio para acompañarte desde el primer paso hasta la operación completa.
+            {settings.servicios_subtitle}
           </p>
         </div>
 
@@ -136,19 +138,19 @@ const Servicios = () => {
         >
           <div className="p-10 border-b-2 md:border-b-0 md:border-r-2 border-gray-900 dark:border-white">
             <h3 className="text-[1.8rem] font-black uppercase leading-tight text-gray-900 dark:text-white mb-3 tracking-tight">
-              ¿No sabes por dónde empezar?
+              {settings.servicios_cta_heading}
             </h3>
             <p
               className="text-gray-500 dark:text-gray-400 text-[0.9rem] leading-relaxed"
               style={{ fontFamily: "'Barlow', sans-serif" }}
             >
-              Te hacemos un diagnóstico gratuito. Nos cuentas cómo trabajas y te decimos qué necesitas — sin venderte nada que no sea útil.
+              {settings.servicios_cta_text}
             </p>
           </div>
 
           <div className="p-10 bg-gray-900 dark:bg-white flex flex-col gap-4 justify-center">
             <p className="text-white dark:text-gray-900 font-black uppercase text-[1rem] tracking-tight">
-              Diagnóstico gratuito, sin compromiso.
+              {settings.servicios_cta_tag}
             </p>
             <button
               onClick={() => scrollTo('cta')}
@@ -158,7 +160,7 @@ const Servicios = () => {
                 boxShadow: '4px 4px 0px rgba(255,255,255,0.15)',
               }}
             >
-              Quiero el diagnóstico
+              {settings.servicios_cta_button}
               <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
             </button>
           </div>

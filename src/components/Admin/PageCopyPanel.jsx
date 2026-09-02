@@ -12,6 +12,16 @@ const PAGE_GROUPS = [
       { key: 'softwares_subtitle', label: 'Subtítulo (debajo del título)', type: 'textarea' },
     ],
   },
+  {
+    page: 'Servicios',
+    fields: [
+      { key: 'servicios_subtitle',     label: 'Subtítulo (debajo del título)', type: 'textarea' },
+      { key: 'servicios_cta_heading',  label: 'Título del bloque final ("¿No sabes por dónde empezar?")', type: 'input' },
+      { key: 'servicios_cta_text',     label: 'Texto del bloque final', type: 'textarea' },
+      { key: 'servicios_cta_tag',      label: 'Frase destacada (fondo oscuro)', type: 'input' },
+      { key: 'servicios_cta_button',   label: 'Texto del botón', type: 'input' },
+    ],
+  },
 ];
 
 const PageCopyPanel = () => {
