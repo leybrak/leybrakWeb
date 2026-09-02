@@ -2,47 +2,28 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ArrowRight, Download } from 'lucide-react';
+import { useProducts } from '../hooks/useProducts';
 
 gsap.registerPlugin();
-
-// Agrega aquí cada nuevo sistema a medida que esté listo para descargar.
-const DOWNLOADS = [
-  {
-    id: '01',
-    sys_name: 'BRAVA_POS',
-    title: 'Leybrak POS',
-    tag: 'Disponible ahora',
-    tagBlue: true,
-    desc: 'App de punto de venta para restaurantes y locales de comida. Descarga la última versión para instalar.',
-    url: 'https://pos.leybrak.com/api/app/descargar/',
-    cta: 'Descargar app',
-    available: true,
-  },
-  {
-    id: '02',
-    sys_name: 'SYS_NEXT',
-    title: 'Próximo sistema',
-    tag: 'Próximamente',
-    tagBlue: false,
-    desc: 'Estamos construyendo el siguiente sistema. Cuando esté listo, su descarga aparecerá aquí.',
-    url: null,
-    cta: 'Próximamente',
-    available: false,
-  },
-];
 
 const Descargas = () => {
   const headerRef = useRef(null);
   const cardRefs  = useRef([]);
+  const { products } = useProducts();
+  const downloads = products.filter(p => p.downloadUrl);
 
   useEffect(() => {
     window.scrollTo(0, 0);
     gsap.fromTo(headerRef.current, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' });
+  }, []);
+
+  useEffect(() => {
+    if (downloads.length === 0) return;
     gsap.fromTo(cardRefs.current,
       { opacity: 0, y: 50 },
       { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power3.out', delay: 0.2 }
     );
-  }, []);
+  }, [downloads]);
 
   return (
     <section
@@ -80,21 +61,26 @@ const Descargas = () => {
         </div>
 
         {/* Cards */}
+        {downloads.length === 0 ? (
+          <p className="text-gray-500 dark:text-gray-400 font-mono text-[0.9rem] border-2 border-dashed border-gray-300 dark:border-gray-700 p-10 text-center">
+            Todavía no hay descargas disponibles. Vuelve pronto.
+          </p>
+        ) : (
         <div className="grid md:grid-cols-3 gap-8">
-          {DOWNLOADS.map((d, i) => (
+          {downloads.map((d, i) => (
             <div key={d.id} ref={el => cardRefs.current[i] = el} className="relative flex flex-col">
               <div className={`absolute top-3 left-3 w-full h-full border-2 z-0 ${d.available ? 'bg-leybrak-blue border-leybrak-blue' : 'bg-gray-200 dark:bg-gray-800 border-gray-200 dark:border-gray-800'}`} />
 
               <div className={`relative z-10 flex flex-col h-full bg-white dark:bg-[#0f0f12] border-2 border-gray-900 dark:border-white ${!d.available ? 'opacity-70' : ''}`}>
 
                 <div className="flex items-center justify-between px-7 py-4 border-b-2 border-gray-900 dark:border-white">
-                  <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-leybrak-blue">{d.sys_name}</span>
-                  <span className="font-mono text-[10px] font-bold text-gray-300 dark:text-gray-700">{d.id}</span>
+                  <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-leybrak-blue">{d.sysName}</span>
+                  <span className="font-mono text-[10px] font-bold text-gray-300 dark:text-gray-700">{String(i + 1).padStart(2, '0')}</span>
                 </div>
 
                 <div className="px-7 py-7 flex flex-col flex-1 gap-4">
                   <span className={`text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 border font-mono w-fit
-                    ${d.tagBlue ? 'border-leybrak-blue text-leybrak-blue' : 'border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-500'}`}>
+                    ${d.available ? 'border-leybrak-blue text-leybrak-blue' : 'border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-500'}`}>
                     {d.tag}
                   </span>
                   <h2 className="text-[1.7rem] font-black uppercase leading-tight text-gray-900 dark:text-white tracking-tight">
@@ -102,12 +88,12 @@ const Descargas = () => {
                   </h2>
                   <p className="text-gray-600 dark:text-gray-400 text-[0.88rem] leading-relaxed flex-1"
                      style={{ fontFamily: "'Barlow', sans-serif" }}>
-                    {d.desc}
+                    {d.description}
                   </p>
 
                   <div className="pt-4 border-t-2 border-gray-100 dark:border-gray-800">
-                    {d.url ? (
-                      <a href={d.url} target="_blank" rel="noopener noreferrer"
+                    {d.available ? (
+                      <a href={d.downloadUrl} target="_blank" rel="noopener noreferrer"
                          className="flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3.5 text-[12px] font-bold uppercase tracking-widest hover:bg-leybrak-blue hover:border-leybrak-blue hover:text-white border-2 border-gray-900 dark:border-white transition-all duration-200 group w-full"
                          style={{ boxShadow: '3px 3px 0px rgba(37,99,235,0.3)' }}>
                         <Download size={14} className="group-hover:translate-y-0.5 transition-transform" />
@@ -124,6 +110,7 @@ const Descargas = () => {
             </div>
           ))}
         </div>
+        )}
 
         <div className="mt-12 flex items-center justify-between border-t-2 border-gray-900/10 dark:border-white/10 pt-8">
           <Link to="/" className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-widest text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors font-mono group">

@@ -90,6 +90,64 @@ const createTables = async () => {
     CREATE TRIGGER settings_updated_at
       BEFORE UPDATE ON settings
       FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Campos nuevos de productos: descarga, plataforma, galería de imágenes ──
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS download_url VARCHAR(400);
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS platform     VARCHAR(20) NOT NULL DEFAULT 'both';
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS images       JSONB NOT NULL DEFAULT '[]';
+
+    -- ── Planes de precio de un producto (ej. Básico / Pro de Leybrak POS) ───────
+    CREATE TABLE IF NOT EXISTS product_plans (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      product_id    UUID        NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      name          VARCHAR(80) NOT NULL,
+      price         NUMERIC(10,2),
+      price_note    VARCHAR(40)  NOT NULL DEFAULT '/mes',
+      tag           VARCHAR(80)  NOT NULL DEFAULT '',
+      description   TEXT         NOT NULL DEFAULT '',
+      featured      BOOLEAN      NOT NULL DEFAULT false,
+      features      JSONB        NOT NULL DEFAULT '[]', -- [{ text, ok }]
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_product_plans_product_id ON product_plans(product_id);
+
+    DROP TRIGGER IF EXISTS product_plans_updated_at ON product_plans;
+    CREATE TRIGGER product_plans_updated_at
+      BEFORE UPDATE ON product_plans
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Lista de servicios que se muestra en /servicios ─────────────────────────
+    CREATE TABLE IF NOT EXISTS services (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title         VARCHAR(160) NOT NULL,
+      description   TEXT         NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS services_updated_at ON services;
+    CREATE TRIGGER services_updated_at
+      BEFORE UPDATE ON services
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Valores/pilares que se muestran en /nosotros ────────────────────────────
+    CREATE TABLE IF NOT EXISTS about_values (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title         VARCHAR(120) NOT NULL,
+      description   TEXT         NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS about_values_updated_at ON about_values;
+    CREATE TRIGGER about_values_updated_at
+      BEFORE UPDATE ON about_values
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
   `;
 
   try {
@@ -98,6 +156,9 @@ const createTables = async () => {
 
     await seedSettings();
     await seedProducts();
+    await seedPlans();
+    await seedServices();
+    await seedAboutValues();
     await seedAdmin();
   } catch (err) {
     console.error('❌ Error creando tablas:', err.message);
@@ -115,6 +176,9 @@ const seedSettings = async () => {
     instagram_url:   '',
     linkedin_url:    '',
     twitter_url:     '',
+    about_founded:   '2026',
+    about_city:      'Lima, Perú',
+    about_mission:   'Hacer que la tecnología sea accesible para cualquier negocio, sin importar su tamaño.',
   };
 
   for (const [key, value] of Object.entries(defaults)) {
@@ -161,6 +225,107 @@ const seedProducts = async () => {
     );
   }
   console.log('✅ Productos iniciales cargados');
+};
+
+// ── Planes de Leybrak POS (Básico / Pro), para que el admin ya los vea listos ──
+const seedPlans = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM product_plans');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const product = await pool.query(`SELECT id FROM products WHERE sys_name = 'BRAVA_POS' LIMIT 1`);
+  if (product.rowCount === 0) return;
+  const productId = product.rows[0].id;
+
+  const plans = [
+    {
+      name: 'Básico', price: 80, tag: 'Para empezar', featured: false, sort_order: 1,
+      description: 'Todo lo que necesitas para digitalizar tu operación desde el primer día.',
+      features: [
+        { text: '1 sede',                   ok: true  },
+        { text: 'Terminal POS ilimitado',   ok: true  },
+        { text: 'KDS (pantalla de cocina)', ok: true  },
+        { text: 'Carta QR para tu local',   ok: true  },
+        { text: 'Dashboard de ventas',      ok: true  },
+        { text: 'Soporte por WhatsApp',     ok: true  },
+        { text: 'Bot de WhatsApp',          ok: false },
+        { text: 'App de delivery propia',   ok: false },
+        { text: 'Hasta 4 sedes',            ok: false },
+      ],
+    },
+    {
+      name: 'Pro', price: 150, tag: 'Más popular', featured: true, sort_order: 2,
+      description: 'Para negocios que ya crecieron o quieren escalar a varios locales.',
+      features: [
+        { text: 'Hasta 4 sedes',            ok: true },
+        { text: 'Terminal POS ilimitado',   ok: true },
+        { text: 'KDS (pantalla de cocina)', ok: true },
+        { text: 'Carta QR para tu local',   ok: true },
+        { text: 'Dashboard de ventas',      ok: true },
+        { text: 'Soporte prioritario',      ok: true },
+        { text: 'Bot de WhatsApp incluido', ok: true },
+        { text: 'App de delivery propia',   ok: true },
+        { text: 'Reportes multi-sede',      ok: true },
+      ],
+    },
+  ];
+
+  for (const p of plans) {
+    await pool.query(
+      `INSERT INTO product_plans (product_id, name, price, tag, description, featured, features, sort_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [productId, p.name, p.price, p.tag, p.description, p.featured, JSON.stringify(p.features), p.sort_order]
+    );
+  }
+  console.log('✅ Planes iniciales cargados');
+};
+
+// ── Lista de servicios actual, para que el admin ya la vea lista ──────────────
+const seedServices = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM services');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const services = [
+    { title: 'Digitalización de procesos', sort_order: 1,
+      description: 'Tomamos todo lo que haces en papel, Excel o WhatsApp y lo convertimos en un flujo digital ordenado. Tu operación en un solo lugar.' },
+    { title: 'Sistemas de punto de venta', sort_order: 2,
+      description: 'Implementamos y configuramos tu POS según el tipo de negocio que tienes. Desde restaurantes hasta tiendas de retail.' },
+    { title: 'Automatización de tareas', sort_order: 3,
+      description: 'Identificamos qué tareas repetitivas te roban tiempo y las automatizamos. Menos horas manuales, menos errores humanos.' },
+    { title: 'Desarrollo a medida', sort_order: 4,
+      description: 'Construimos software hecho para tu operación exacta cuando las soluciones estándar no alcanzan.' },
+    { title: 'Capacitación y soporte', sort_order: 5,
+      description: 'No te dejamos solo. Capacitamos a tu equipo y te acompañamos después del lanzamiento.' },
+    { title: 'Integración de sistemas', sort_order: 6,
+      description: 'Conectamos las herramientas que ya usas entre sí para que los datos fluyan solos sin trabajo manual.' },
+  ];
+
+  for (const s of services) {
+    await pool.query(
+      `INSERT INTO services (title, description, sort_order) VALUES ($1, $2, $3)`,
+      [s.title, s.description, s.sort_order]
+    );
+  }
+  console.log('✅ Servicios iniciales cargados');
+};
+
+// ── Valores de "Nosotros" actuales, para que el admin ya los vea listos ───────
+const seedAboutValues = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM about_values');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const values = [
+    { title: 'Claridad',    sort_order: 1, description: 'Sin tecnicismos. Te explicamos todo en lenguaje de negocio.' },
+    { title: 'Compromiso',  sort_order: 2, description: 'No desaparecemos después de entregar. Estamos cuando nos necesitas.' },
+    { title: 'Resultados',  sort_order: 3, description: 'No medimos el éxito en código entregado, sino en impacto en tu negocio.' },
+  ];
+
+  for (const v of values) {
+    await pool.query(
+      `INSERT INTO about_values (title, description, sort_order) VALUES ($1, $2, $3)`,
+      [v.title, v.description, v.sort_order]
+    );
+  }
+  console.log('✅ Valores de "Nosotros" iniciales cargados');
 };
 
 // ── Usuario admin inicial, tomado de las variables de entorno ─────────────────

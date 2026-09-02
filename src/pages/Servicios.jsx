@@ -3,64 +3,37 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ArrowRight } from 'lucide-react';
 import { useScrollTo } from '../hooks/useScrollTo';
-const SERVICES = [
-  {
-    id: '01',
-    title: 'Digitalización de procesos',
-    desc: 'Tomamos todo lo que haces en papel, Excel o WhatsApp y lo convertimos en un flujo digital ordenado. Tu operación en un solo lugar.',
-  },
-  {
-    id: '02',
-    title: 'Sistemas de punto de venta',
-    desc: 'Implementamos y configuramos tu POS según el tipo de negocio que tienes. Desde restaurantes hasta tiendas de retail.',
-  },
-  {
-    id: '03',
-    title: 'Automatización de tareas',
-    desc: 'Identificamos qué tareas repetitivas te roban tiempo y las automatizamos. Menos horas manuales, menos errores humanos.',
-  },
-  {
-    id: '04',
-    title: 'Desarrollo a medida',
-    desc: 'Construimos software hecho para tu operación exacta cuando las soluciones estándar no alcanzan.',
-  },
-  {
-    id: '05',
-    title: 'Capacitación y soporte',
-    desc: 'No te dejamos solo. Capacitamos a tu equipo y te acompañamos después del lanzamiento.',
-  },
-  {
-    id: '06',
-    title: 'Integración de sistemas',
-    desc: 'Conectamos las herramientas que ya usas entre sí para que los datos fluyan solos sin trabajo manual.',
-  },
-];
+import { useContentItems } from '../hooks/useContentItems';
 
 const Servicios = () => {
   const headerRef  = useRef(null);
   const gridRef    = useRef(null);
   const ctaRef     = useRef(null);
   const scrollTo = useScrollTo();
+  const { items: services } = useContentItems('/api/services');
+
   useEffect(() => {
     window.scrollTo(0, 0);
-
-    const tl = gsap.timeline();
-    tl.fromTo(headerRef.current,
+    gsap.fromTo(headerRef.current,
       { opacity: 0, y: 32 },
       { opacity: 1, y: 0, duration: 0.55, ease: 'power3.out' }
-    )
-    .fromTo(
+    );
+  }, []);
+
+  useEffect(() => {
+    if (services.length === 0) return;
+    const tl = gsap.timeline();
+    tl.fromTo(
       gridRef.current?.querySelectorAll('.service-row'),
       { opacity: 0, x: -24 },
-      { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' },
-      '-=0.2'
+      { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, ease: 'power2.out' }
     )
     .fromTo(ctaRef.current,
       { opacity: 0, y: 20 },
       { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' },
       '-=0.1'
     );
-  }, []);
+  }, [services]);
 
   return (
     <section
@@ -120,7 +93,7 @@ const Servicios = () => {
           ref={gridRef}
           className="border-l-2 border-t-2 border-gray-900 dark:border-white/10 mb-16"
         >
-          {SERVICES.map((s) => (
+          {services.map((s, i) => (
             <div
               key={s.id}
               className="service-row grid md:grid-cols-[80px_1fr_1fr] border-b-2 border-r-2 border-gray-900 dark:border-white/10 group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors duration-200"
@@ -128,7 +101,7 @@ const Servicios = () => {
               {/* Número */}
               <div className="px-6 py-6 border-r-2 border-gray-900 dark:border-white/10 flex items-center justify-center">
                 <span className="font-mono text-[11px] font-bold text-leybrak-blue">
-                  {s.id}
+                  {String(i + 1).padStart(2, '0')}
                 </span>
               </div>
 
@@ -145,7 +118,7 @@ const Servicios = () => {
                   className="text-[0.88rem] text-gray-600 dark:text-gray-400 leading-relaxed"
                   style={{ fontFamily: "'Barlow', sans-serif" }}
                 >
-                  {s.desc}
+                  {s.description}
                 </p>
                 <ArrowRight
                   size={16}
