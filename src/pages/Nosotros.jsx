@@ -74,8 +74,8 @@ const Nosotros = () => {
           {[
             { label: 'Fundada',    value: settings.about_founded },
             { label: 'Ciudad',     value: settings.about_city },
-            { label: 'Negocios',   value: '1' },
-            { label: 'Sectores',   value: '1' },
+            { label: 'Negocios',   value: settings.about_negocios },
+            { label: 'Sectores',   value: settings.about_sectores },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -94,7 +94,7 @@ const Nosotros = () => {
         {/* Valores */}
         <div className="fade-in mb-16">
           <h2 className="text-[1.6rem] font-black uppercase tracking-tight text-gray-900 dark:text-white mb-8 border-b-2 border-gray-900/10 dark:border-white/10 pb-4">
-            Lo que nos mueve
+            {settings.about_values_heading}
           </h2>
           <div className="grid md:grid-cols-3 gap-0 border-l-2 border-t-2 border-gray-900 dark:border-white/10">
             {values.map((v, i) => (
@@ -119,18 +119,20 @@ const Nosotros = () => {
           </div>
         </div>
 
-        {/* Placeholder — equipo */}
-        <div className="fade-in border-2 border-dashed border-gray-300 dark:border-gray-700 p-10 mb-16 text-center">
-          <p className="font-mono text-[11px] text-gray-400 uppercase tracking-widest mb-2">
-            // PRÓXIMAMENTE
-          </p>
-          <p
-            className="text-gray-500 dark:text-gray-500 text-[0.9rem]"
-            style={{ fontFamily: "'Barlow', sans-serif" }}
-          >
-            
-          </p>
-        </div>
+        {/* Equipo — solo se muestra si hay texto cargado desde el panel */}
+        {settings.about_team_text && (
+          <div className="fade-in border-2 border-dashed border-gray-300 dark:border-gray-700 p-10 mb-16 text-center">
+            <p className="font-mono text-[11px] text-gray-400 uppercase tracking-widest mb-2">
+              // EQUIPO
+            </p>
+            <p
+              className="text-gray-500 dark:text-gray-500 text-[0.9rem]"
+              style={{ fontFamily: "'Barlow', sans-serif" }}
+            >
+              {settings.about_team_text}
+            </p>
+          </div>
+        )}
 
         {/* Footer de página */}
         <div className="fade-in flex items-center justify-between border-t-2 border-gray-900/10 dark:border-white/10 pt-8">

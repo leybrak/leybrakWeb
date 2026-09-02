@@ -7,16 +7,23 @@ const AboutPanel = () => {
   const { authFetch } = useAuth();
   const { settings, refresh } = useSiteSettings();
 
-  const [form, setForm]       = useState({ about_founded: '', about_city: '', about_mission: '' });
+  const [form, setForm]       = useState({
+    about_founded: '', about_city: '', about_mission: '',
+    about_negocios: '', about_sectores: '', about_values_heading: '', about_team_text: '',
+  });
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
     (() => setForm({
-      about_founded: settings.about_founded || '',
-      about_city:    settings.about_city || '',
-      about_mission: settings.about_mission || '',
+      about_founded:        settings.about_founded || '',
+      about_city:           settings.about_city || '',
+      about_mission:        settings.about_mission || '',
+      about_negocios:       settings.about_negocios || '',
+      about_sectores:       settings.about_sectores || '',
+      about_values_heading: settings.about_values_heading || '',
+      about_team_text:      settings.about_team_text || '',
     }))();
   }, [settings]);
 
@@ -66,6 +73,44 @@ const AboutPanel = () => {
             <textarea
               value={form.about_mission}
               onChange={e => setForm(p => ({ ...p, about_mission: e.target.value }))}
+              rows={3}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
+            />
+          </label>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+              Negocios (número de la estadística)
+              <input
+                value={form.about_negocios}
+                onChange={e => setForm(p => ({ ...p, about_negocios: e.target.value }))}
+                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none normal-case"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+              Sectores (número de la estadística)
+              <input
+                value={form.about_sectores}
+                onChange={e => setForm(p => ({ ...p, about_sectores: e.target.value }))}
+                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none normal-case"
+              />
+            </label>
+          </div>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            Título de la sección de valores
+            <input
+              value={form.about_values_heading}
+              onChange={e => setForm(p => ({ ...p, about_values_heading: e.target.value }))}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none normal-case"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            Texto del bloque "equipo" (déjalo vacío para no mostrar nada ahí)
+            <textarea
+              value={form.about_team_text}
+              onChange={e => setForm(p => ({ ...p, about_team_text: e.target.value }))}
               rows={3}
               className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
             />
