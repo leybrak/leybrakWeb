@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Plus, Pencil, Trash2, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useProducts } from '../../hooks/useProducts';
 import { usePlans } from '../../hooks/usePlans';
 
 const EMPTY_FORM = {
   name: '', price: '', priceNote: '/mes', tag: '', description: '',
-  featured: false, featuresText: '', sortOrder: 0,
+  featured: false, featuresText: '',
 };
 
 // Convierte [{text, ok}] <-> texto con líneas "✓ algo incluido" / "✗ algo no incluido"
@@ -28,7 +28,6 @@ const toFormState = (plan) => ({
   description:  plan.description || '',
   featured:     plan.featured,
   featuresText: featuresToText(plan.features),
-  sortOrder:    plan.sortOrder ?? 0,
 });
 
 const PlansPanel = () => {
@@ -45,6 +44,7 @@ const PlansPanel = () => {
   const [form, setForm]           = useState(EMPTY_FORM);
   const [saving, setSaving]       = useState(false);
   const [error, setError]         = useState('');
+  const [reordering, setReordering] = useState(false);
 
   const openCreate = () => { setForm(EMPTY_FORM); setEditingId('new'); setError(''); };
   const openEdit = (plan) => { setForm(toFormState(plan)); setEditingId(plan.id); setError(''); };
@@ -56,7 +56,7 @@ const PlansPanel = () => {
     setSaving(true);
     setError('');
 
-    const payload = {
+    const basePayload = {
       productId,
       name:        form.name,
       price:       form.price === '' ? null : Number(form.price),
@@ -65,14 +65,15 @@ const PlansPanel = () => {
       description: form.description,
       featured:    form.featured,
       features:    textToFeatures(form.featuresText),
-      sortOrder:   Number(form.sortOrder) || 0,
     };
 
     try {
       if (editingId === 'new') {
-        await authFetch('/api/plans', { method: 'POST', body: JSON.stringify(payload) });
+        const nextOrder = plans.length > 0 ? Math.max(...plans.map(p => p.sortOrder ?? 0)) + 1 : 1;
+        await authFetch('/api/plans', { method: 'POST', body: JSON.stringify({ ...basePayload, sortOrder: nextOrder }) });
       } else {
-        await authFetch(`/api/plans/${editingId}`, { method: 'PUT', body: JSON.stringify(payload) });
+        const current = plans.find(p => p.id === editingId);
+        await authFetch(`/api/plans/${editingId}`, { method: 'PUT', body: JSON.stringify({ ...basePayload, sortOrder: current?.sortOrder ?? 0 }) });
       }
       await refresh();
       closeForm();
@@ -90,6 +91,30 @@ const PlansPanel = () => {
       await refresh();
     } catch (err) {
       window.alert(err.message);
+    }
+  };
+
+  const move = async (index, direction) => {
+    const otherIndex = index + direction;
+    if (otherIndex < 0 || otherIndex >= plans.length) return;
+    const a = plans[index];
+    const b = plans[otherIndex];
+    const toPayload = (plan, sortOrder) => ({
+      productId, name: plan.name, price: plan.price, priceNote: plan.priceNote,
+      tag: plan.tag, description: plan.description, featured: plan.featured,
+      features: plan.features, sortOrder,
+    });
+    setReordering(true);
+    try {
+      await Promise.all([
+        authFetch(`/api/plans/${a.id}`, { method: 'PUT', body: JSON.stringify(toPayload(a, b.sortOrder)) }),
+        authFetch(`/api/plans/${b.id}`, { method: 'PUT', body: JSON.stringify(toPayload(b, a.sortOrder)) }),
+      ]);
+      await refresh();
+    } catch (err) {
+      window.alert(err.message);
+    } finally {
+      setReordering(false);
     }
   };
 
@@ -201,15 +226,11 @@ const PlansPanel = () => {
             Destacar este plan (ej. "Más popular")
           </label>
 
-          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500 max-w-[160px]">
-            Orden
-            <input
-              type="number"
-              value={form.sortOrder}
-              onChange={e => handleChange('sortOrder', e.target.value)}
-              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
-            />
-          </label>
+          {editingId === 'new' && (
+            <p className="text-gray-400 text-[11px] font-mono normal-case">
+              Se agrega al final de la lista — después puedes reordenarlo con las flechas ▲▼.
+            </p>
+          )}
 
           {error && <p className="text-red-500 text-[12px] font-mono">{error}</p>}
 
@@ -241,22 +262,41 @@ const PlansPanel = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b-2 border-gray-900 dark:border-white text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3">Nombre</th>
                 <th className="px-4 py-3">Precio</th>
                 <th className="px-4 py-3">Destacado</th>
-                <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {plans.map(plan => (
+              {plans.map((plan, i) => (
                 <tr key={plan.id} className="border-b border-gray-200 dark:border-white/10 text-[13px] text-gray-900 dark:text-white">
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => move(i, -1)}
+                        disabled={i === 0 || reordering}
+                        className="text-gray-400 hover:text-leybrak-blue disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Subir"
+                      >
+                        <ArrowUp size={14} />
+                      </button>
+                      <button
+                        onClick={() => move(i, 1)}
+                        disabled={i === plans.length - 1 || reordering}
+                        className="text-gray-400 hover:text-leybrak-blue disabled:opacity-20 disabled:cursor-not-allowed transition-colors"
+                        aria-label="Bajar"
+                      >
+                        <ArrowDown size={14} />
+                      </button>
+                    </div>
+                  </td>
                   <td className="px-4 py-3 font-bold">{plan.name}</td>
                   <td className="px-4 py-3 font-mono text-gray-500">
                     {plan.price !== null ? `S/${plan.price}${plan.priceNote}` : '—'}
                   </td>
                   <td className="px-4 py-3">{plan.featured ? 'Sí' : 'No'}</td>
-                  <td className="px-4 py-3 font-mono text-gray-500">{plan.sortOrder}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2 justify-end">
                       <button onClick={() => openEdit(plan)} className="text-gray-400 hover:text-leybrak-blue transition-colors">
