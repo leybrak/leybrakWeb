@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   about_founded:   '',
   about_city:      '',
   about_mission:   '',
+  softwares_subtitle: 'Tres soluciones para tres necesidades distintas. Elige la que encaja con tu negocio hoy.',
 };
 
 export const SiteSettingsProvider = ({ children }) => {

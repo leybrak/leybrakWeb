@@ -11,6 +11,7 @@ const ALLOWED_KEYS = [
   'about_founded',
   'about_city',
   'about_mission',
+  'softwares_subtitle',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────
