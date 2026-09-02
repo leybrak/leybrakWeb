@@ -3,53 +3,9 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ArrowUpRight } from 'lucide-react';
+import { useProducts } from '../hooks/useProducts';
 
 gsap.registerPlugin(ScrollTrigger);
-
-const PRODUCTS = [
-  {
-    id: '01',
-    sys_name: 'BRAVA_POS',
-    title: 'SaaS Gastronómico',
-    tag: 'Producto listo',
-    to: '/softwares/leybrak-pos',
-    description:
-      'Tu restaurante factura más rápido, pierde menos y siempre tiene el inventario al día. Sin papel, sin cuentas a mano.',
-    features: [
-      'Control de caja al centavo',
-      'Inventario sincronizado en vivo',
-      'Funciona sin internet en hora pico',
-    ],
-  },
-  {
-    id: '02',
-    sys_name: 'SYS_CUSTOM',
-    title: 'Software a Medida',
-    tag: 'A tu medida',
-    to: '/softwares/a-medida',
-    description:
-      'Si ningún software del mercado se adapta a cómo trabajas, lo construimos desde cero para tu operación exacta.',
-    features: [
-      'Diseñado para tu proceso real',
-      'Sin funciones que no necesitas',
-      'Escala cuando tu negocio crece',
-    ],
-  },
-  {
-    id: '03',
-    sys_name: 'DATA_VISION',
-    title: 'Inteligencia de Negocio',
-    tag: 'Add-on disponible',
-    to: '/softwares',
-    description:
-      'Deja de adivinar cuánto vendes. Paneles claros para saber qué funciona, qué no, y dónde va tu dinero.',
-    features: [
-      'Reportes de ventas en tiempo real',
-      'Detección de fugas de capital',
-      'Decisiones con datos, no con corazonadas',
-    ],
-  },
-];
 
 const Products = () => {
   const sectionRef  = useRef(null);
@@ -57,6 +13,7 @@ const Products = () => {
   const headingRef  = useRef(null);
   const subRef      = useRef(null);
   const cardRefs    = useRef([]);
+  const { products } = useProducts('producto');
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -66,7 +23,15 @@ const Products = () => {
         { opacity: 1, y: 0, duration: 0.55, stagger: 0.1, ease: 'power3.out',
           scrollTrigger: { trigger: sectionRef.current, start: 'top 75%' } }
       );
+    }, sectionRef);
 
+    return () => ctx.revert();
+  }, []);
+
+  useEffect(() => {
+    if (products.length === 0) return;
+
+    const ctx = gsap.context(() => {
       cardRefs.current.forEach((card, i) => {
         if (!card) return;
         gsap.fromTo(card,
@@ -95,7 +60,7 @@ const Products = () => {
       cardRefs.current.forEach(c => c?._cleanup?.());
       ctx.revert();
     };
-  }, []);
+  }, [products]);
 
   return (
     <section
@@ -133,7 +98,7 @@ const Products = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {PRODUCTS.map((product, i) => (
+          {products.map((product, i) => (
             <div key={product.id} ref={el => cardRefs.current[i] = el} className="relative flex flex-col">
               <div
                 className="card-shadow absolute inset-0 bg-leybrak-blue border-2 border-leybrak-blue"
@@ -141,12 +106,12 @@ const Products = () => {
               />
               <div className="relative z-10 flex flex-col h-full bg-leybrak-light dark:bg-leybrak-dark border-2 border-gray-900 dark:border-white">
                 <div className="flex items-center justify-between px-7 py-4 border-b-2 border-gray-900 dark:border-white">
-                  <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-leybrak-blue">{product.sys_name}</span>
-                  <span className="font-mono text-[10px] font-bold text-gray-400 dark:text-gray-600">{product.id}</span>
+                  <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-leybrak-blue">{product.sysName}</span>
+                  <span className="font-mono text-[10px] font-bold text-gray-400 dark:text-gray-600">{String(i + 1).padStart(2, '0')}</span>
                 </div>
                 <div className="px-7 py-7 flex flex-col flex-1 gap-6">
                   <span className={`self-start text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 border font-mono
-                    ${product.id === '02' ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white' : 'border-leybrak-blue text-leybrak-blue'}`}>
+                    ${product.available ? 'border-leybrak-blue text-leybrak-blue' : 'border-gray-900 dark:border-white text-gray-900 dark:text-white'}`}>
                     {product.tag}
                   </span>
                   <h3 className="text-[1.6rem] font-black uppercase leading-tight text-gray-900 dark:text-white tracking-tight">{product.title}</h3>
@@ -164,12 +129,8 @@ const Products = () => {
 
                   {/* CTA — Link en lugar de button */}
                   <Link
-                    to={product.to}
-                    className={`mt-2 w-full flex items-center justify-between border-t-2 pt-4 font-bold uppercase tracking-widest text-[12px] transition-colors duration-200 group
-                      ${product.id === '02'
-                        ? 'border-gray-900 dark:border-white text-gray-900 dark:text-white hover:text-leybrak-blue'
-                        : 'border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white hover:text-leybrak-blue'
-                      }`}
+                    to={product.to || '/softwares'}
+                    className="mt-2 w-full flex items-center justify-between border-t-2 pt-4 font-bold uppercase tracking-widest text-[12px] transition-colors duration-200 group border-gray-200 dark:border-gray-800 text-gray-900 dark:text-white hover:text-leybrak-blue"
                     style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                   >
                     <span>Saber más</span>

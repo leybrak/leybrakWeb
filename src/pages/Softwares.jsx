@@ -2,57 +2,27 @@ import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ArrowRight } from 'lucide-react';
+import { useProducts } from '../hooks/useProducts';
 
 gsap.registerPlugin();
-
-const PRODUCTS = [
-  {
-    id: '01',
-    sys_name: 'BRAVA_POS',
-    title: 'SaaS Gastronómico',
-    tag: 'Disponible ahora',
-    tagBlue: true,
-    desc: 'Para restaurantes y locales de comida. Mesas, pedidos, caja e inventario en un solo lugar.',
-    to: '/softwares/leybrak-pos',
-    cta: 'Ver producto',
-    available: true,
-  },
-  {
-    id: '02',
-    sys_name: 'SYS_CUSTOM',
-    title: 'Software a Medida',
-    tag: 'Proyecto personalizado',
-    tagBlue: false,
-    desc: 'Cuando lo estándar no alcanza. Construimos exactamente lo que tu operación necesita.',
-    to: '/softwares/a-medida',
-    cta: 'Ver cómo funciona',
-    available: true,
-  },
-  {
-    id: '03',
-    sys_name: 'DATA_VISION',
-    title: 'Inteligencia de Negocio',
-    tag: 'Próximamente',
-    tagBlue: false,
-    desc: 'Paneles de ventas, detección de fugas y reportes para tomar decisiones con datos reales.',
-    to: null,
-    cta: 'Próximamente',
-    available: false,
-  },
-];
 
 const Softwares = () => {
   const headerRef = useRef(null);
   const cardRefs  = useRef([]);
+  const { products } = useProducts('producto');
 
   useEffect(() => {
     window.scrollTo(0, 0);
     gsap.fromTo(headerRef.current, { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' });
+  }, []);
+
+  useEffect(() => {
+    if (products.length === 0) return;
     gsap.fromTo(cardRefs.current,
       { opacity: 0, y: 50 },
       { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power3.out', delay: 0.2 }
     );
-  }, []);
+  }, [products]);
 
   return (
     <section
@@ -91,20 +61,20 @@ const Softwares = () => {
 
         {/* Cards */}
         <div className="grid md:grid-cols-3 gap-8">
-          {PRODUCTS.map((p, i) => (
+          {products.map((p, i) => (
             <div key={p.id} ref={el => cardRefs.current[i] = el} className="relative flex flex-col">
               <div className={`absolute top-3 left-3 w-full h-full border-2 z-0 ${p.available ? 'bg-leybrak-blue border-leybrak-blue' : 'bg-gray-200 dark:bg-gray-800 border-gray-200 dark:border-gray-800'}`} />
 
               <div className={`relative z-10 flex flex-col h-full bg-white dark:bg-[#0f0f12] border-2 border-gray-900 dark:border-white ${!p.available ? 'opacity-70' : ''}`}>
 
                 <div className="flex items-center justify-between px-7 py-4 border-b-2 border-gray-900 dark:border-white">
-                  <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-leybrak-blue">{p.sys_name}</span>
-                  <span className="font-mono text-[10px] font-bold text-gray-300 dark:text-gray-700">{p.id}</span>
+                  <span className="font-mono text-[10px] font-bold tracking-[0.2em] uppercase text-leybrak-blue">{p.sysName}</span>
+                  <span className="font-mono text-[10px] font-bold text-gray-300 dark:text-gray-700">{String(i + 1).padStart(2, '0')}</span>
                 </div>
 
                 <div className="px-7 py-7 flex flex-col flex-1 gap-4">
                   <span className={`text-[10px] font-bold tracking-[0.15em] uppercase px-2.5 py-1 border font-mono w-fit
-                    ${p.tagBlue ? 'border-leybrak-blue text-leybrak-blue' : 'border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-500'}`}>
+                    ${p.available ? 'border-leybrak-blue text-leybrak-blue' : 'border-gray-400 dark:border-gray-600 text-gray-500 dark:text-gray-500'}`}>
                     {p.tag}
                   </span>
                   <h2 className="text-[1.7rem] font-black uppercase leading-tight text-gray-900 dark:text-white tracking-tight">
@@ -112,12 +82,12 @@ const Softwares = () => {
                   </h2>
                   <p className="text-gray-600 dark:text-gray-400 text-[0.88rem] leading-relaxed flex-1"
                      style={{ fontFamily: "'Barlow', sans-serif" }}>
-                    {p.desc}
+                    {p.description}
                   </p>
 
                   <div className="pt-4 border-t-2 border-gray-100 dark:border-gray-800">
-                    {p.to ? (
-                      <Link to={p.to}
+                    {p.available ? (
+                      <Link to={p.to || '/softwares'}
                             className="flex items-center justify-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3.5 text-[12px] font-bold uppercase tracking-widest hover:bg-leybrak-blue hover:border-leybrak-blue hover:text-white border-2 border-gray-900 dark:border-white transition-all duration-200 group w-full"
                             style={{ boxShadow: '3px 3px 0px rgba(37,99,235,0.3)' }}>
                         {p.cta}

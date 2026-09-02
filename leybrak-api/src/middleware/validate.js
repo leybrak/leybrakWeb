@@ -28,6 +28,40 @@ const leadRules = [
     .withMessage('Origen no válido'),
 ];
 
+// ── Reglas para crear/editar productos y proyectos ────────────────────────────
+const productRules = [
+  body('type')
+    .optional()
+    .isIn(['producto', 'proyecto']).withMessage('Tipo no válido'),
+
+  body('title')
+    .trim()
+    .notEmpty().withMessage('El título es requerido')
+    .isLength({ max: 160 }).withMessage('El título no puede superar los 160 caracteres'),
+
+  body('sysName')
+    .optional()
+    .trim()
+    .isLength({ max: 60 }).withMessage('El nombre de sistema no puede superar los 60 caracteres'),
+
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 2000 }).withMessage('La descripción no puede superar los 2000 caracteres'),
+
+  body('features')
+    .optional()
+    .isArray().withMessage('Las características deben ser una lista'),
+
+  body('available')
+    .optional()
+    .isBoolean().withMessage('Disponible debe ser verdadero o falso'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
 // ── Middleware que verifica los resultados ────────────────────────────────────
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -40,4 +74,4 @@ const validate = (req, res, next) => {
   next();
 };
 
-module.exports = { leadRules, validate };
+module.exports = { leadRules, productRules, validate };
