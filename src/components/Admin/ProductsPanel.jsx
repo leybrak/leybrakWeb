@@ -10,7 +10,6 @@ const EMPTY_FORM = {
   tag: '',
   description: '',
   features: '',
-  to: '',
   cta: 'Saber más',
   imageUrl: '',
   available: true,
@@ -26,7 +25,6 @@ const toFormState = (product) => ({
   tag:        product.tag || '',
   description: product.description || '',
   features:   (product.features || []).join('\n'),
-  to:         product.to || '',
   cta:        product.cta || 'Saber más',
   imageUrl:   product.imageUrl || '',
   available:  product.available,
@@ -45,7 +43,6 @@ const toPayload = (form) => ({
   tag:         form.tag,
   description: form.description,
   features:    Array.isArray(form.features) ? form.features : form.features.split('\n').map(f => f.trim()).filter(Boolean),
-  to:          form.to || null,
   cta:         form.cta,
   imageUrl:    form.imageUrl || null,
   available:   form.available,
@@ -83,7 +80,7 @@ const ProductsPanel = () => {
 
   const handleChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }));
 
-  const addImage = () => setForm(prev => ({ ...prev, images: [...prev.images, { url: '', label: '', description: '' }] }));
+  const addImage = () => setForm(prev => ({ ...prev, images: [...prev.images, { url: '', label: '', description: '', cover: false }] }));
   const removeImage = (i) => setForm(prev => ({ ...prev, images: prev.images.filter((_, idx) => idx !== i) }));
   const changeImage = (i, field, value) => setForm(prev => ({
     ...prev,
@@ -227,30 +224,17 @@ const ProductsPanel = () => {
             />
           </label>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-              ¿A dónde lleva el botón? (opcional)
-              <input
-                value={form.to}
-                onChange={e => handleChange('to', e.target.value)}
-                placeholder="Déjalo vacío → va a la página de Softwares"
-                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none normal-case"
-              />
-              <span className="text-gray-400 text-[10px] normal-case leading-snug">
-                Solo llénalo si quieres que abra algo específico: una URL externa (ej. una demo)
-                o, si ya existe, la página propia de este sistema.
-              </span>
-            </label>
-
-            <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-              Texto del botón
-              <input
-                value={form.cta}
-                onChange={e => handleChange('cta', e.target.value)}
-                className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
-              />
-            </label>
-          </div>
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500 max-w-xs">
+            Texto del botón
+            <input
+              value={form.cta}
+              onChange={e => handleChange('cta', e.target.value)}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
+            />
+          </label>
+          <p className="text-gray-400 text-[11px] font-mono normal-case -mt-2">
+            El botón siempre lleva a la página de presentación propia del producto — se crea sola.
+          </p>
 
           <div className="grid md:grid-cols-2 gap-4">
             <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
@@ -301,8 +285,13 @@ const ProductsPanel = () => {
               </button>
             </div>
 
-            {form.images.length === 0 && (
+            {form.images.length === 0 ? (
               <p className="text-gray-400 text-[12px] font-mono">Sin imágenes todavía.</p>
+            ) : (
+              <p className="text-gray-400 text-[11px] font-mono normal-case">
+                Marca "Mostrar en portada" en las imágenes que quieres destacar arriba en la
+                página del producto; el resto aparece en la galería.
+              </p>
             )}
 
             {form.images.map((img, i) => (
@@ -331,6 +320,15 @@ const ProductsPanel = () => {
                   placeholder="Descripción corta (opcional)"
                   className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2 text-[12px] font-mono outline-none normal-case"
                 />
+                <label className="flex items-center gap-2 text-[11px] font-mono uppercase text-gray-500">
+                  <input
+                    type="checkbox"
+                    checked={!!img.cover}
+                    onChange={e => changeImage(i, 'cover', e.target.checked)}
+                    className="w-4 h-4 accent-leybrak-blue"
+                  />
+                  Mostrar en portada
+                </label>
               </div>
             ))}
           </div>

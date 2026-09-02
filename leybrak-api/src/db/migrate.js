@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const pool = require('./pool');
+const { slugify } = require('../utils/slugify');
 
 const createTables = async () => {
   const query = `
@@ -95,6 +96,10 @@ const createTables = async () => {
     ALTER TABLE products ADD COLUMN IF NOT EXISTS download_url VARCHAR(400);
     ALTER TABLE products ADD COLUMN IF NOT EXISTS platform     VARCHAR(20) NOT NULL DEFAULT 'both';
     ALTER TABLE products ADD COLUMN IF NOT EXISTS images       JSONB NOT NULL DEFAULT '[]';
+
+    -- ── Slug: la "ruta" automática de la página de presentación de cada producto ──
+    ALTER TABLE products ADD COLUMN IF NOT EXISTS slug VARCHAR(160);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_products_slug ON products(slug) WHERE slug IS NOT NULL;
 
     -- ── Planes de precio de un producto (ej. Básico / Pro de Leybrak POS) ───────
     CREATE TABLE IF NOT EXISTS product_plans (
@@ -217,6 +222,7 @@ const createTables = async () => {
 
     await seedSettings();
     await seedProducts();
+    await backfillProductSlugs();
     await seedPlans();
     await seedServices();
     await seedAboutValues();
@@ -335,6 +341,36 @@ const seedProducts = async () => {
     );
   }
   console.log('✅ Productos iniciales cargados');
+};
+
+// ── Asigna slug (la "ruta" de la página de presentación) a productos que
+// todavía no lo tienen — nunca se le pide esto al admin, se calcula solo.
+const backfillProductSlugs = async () => {
+  const { rows } = await pool.query('SELECT id, sys_name, title FROM products WHERE slug IS NULL');
+  if (rows.length === 0) return;
+
+  const { rows: existing } = await pool.query('SELECT slug FROM products WHERE slug IS NOT NULL');
+  const taken = new Set(existing.map(r => r.slug));
+
+  // Los dos productos originales conservan la ruta que ya usaban sus páginas hechas a mano.
+  const FIXED_SLUGS = {
+    BRAVA_POS:  'leybrak-pos',
+    LEYBRAK_POS: 'leybrak-pos',
+    SYS_CUSTOM: 'a-medida',
+  };
+
+  for (const row of rows) {
+    let base = FIXED_SLUGS[row.sys_name] || slugify(row.title);
+    let slug = base;
+    let n = 2;
+    while (taken.has(slug)) {
+      slug = `${base}-${n}`;
+      n++;
+    }
+    taken.add(slug);
+    await pool.query('UPDATE products SET slug = $1 WHERE id = $2', [slug, row.id]);
+  }
+  console.log(`✅ Slugs asignados a ${rows.length} producto(s)`);
 };
 
 // ── Planes de Leybrak POS (Básico / Pro), para que el admin ya los vea listos ──
