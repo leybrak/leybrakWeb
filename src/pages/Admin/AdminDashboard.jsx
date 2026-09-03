@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, Package, Settings, KeyRound, ArrowLeft, Tag, Wrench, Users, FileText, Home } from 'lucide-react';
+import { LogOut, Package, Settings, KeyRound, ArrowLeft, Tag, Wrench, Users, UserSquare2, Briefcase, FileText, Home } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import ProductsPanel from '../../components/Admin/ProductsPanel';
 import PlansPanel from '../../components/Admin/PlansPanel';
 import ContentItemsPanel from '../../components/Admin/ContentItemsPanel';
 import AboutPanel from '../../components/Admin/AboutPanel';
+import TeamPanel from '../../components/Admin/TeamPanel';
+import PortfolioPanel from '../../components/Admin/PortfolioPanel';
 import InicioPanel from '../../components/Admin/InicioPanel';
 import PageCopyPanel from '../../components/Admin/PageCopyPanel';
 import SettingsPanel from '../../components/Admin/SettingsPanel';
@@ -21,6 +23,8 @@ const TABS = [
   { key: 'planes',        label: 'Planes',        icon: Tag,       Panel: PlansPanel },
   { key: 'servicios',     label: 'Servicios',      icon: Wrench,    Panel: ServiciosPanel },
   { key: 'nosotros',      label: 'Nosotros',       icon: Users,     Panel: AboutPanel },
+  { key: 'equipo',        label: 'Equipo',         icon: UserSquare2, Panel: TeamPanel },
+  { key: 'portafolio',    label: 'Portafolio',     icon: Briefcase, Panel: PortfolioPanel },
   { key: 'contenido',     label: 'Contenido',     icon: FileText,  Panel: PageCopyPanel },
   { key: 'configuracion', label: 'Configuración', icon: Settings,  Panel: SettingsPanel },
   { key: 'contrasena',    label: 'Contraseña',    icon: KeyRound,  Panel: PasswordPanel },

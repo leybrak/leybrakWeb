@@ -214,6 +214,79 @@ const createTables = async () => {
     CREATE TRIGGER problem_cards_updated_at
       BEFORE UPDATE ON problem_cards
       FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Equipo que se muestra en /nosotros — incluye al fundador ────────────────
+    CREATE TABLE IF NOT EXISTS team_members (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      name          VARCHAR(160) NOT NULL,
+      role          VARCHAR(160) NOT NULL DEFAULT '',
+      photo_url     VARCHAR(400),
+      bio           TEXT         NOT NULL DEFAULT '',
+      linkedin_url  VARCHAR(400),
+      github_url    VARCHAR(400),
+      is_founder    BOOLEAN      NOT NULL DEFAULT false,
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS team_members_updated_at ON team_members;
+    CREATE TRIGGER team_members_updated_at
+      BEFORE UPDATE ON team_members
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Trayectoria (experiencia/educación) del fundador, para /portafolio ─────
+    CREATE TABLE IF NOT EXISTS founder_experience (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      date_label    VARCHAR(80)  NOT NULL DEFAULT '',
+      title         VARCHAR(160) NOT NULL,
+      description   TEXT         NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS founder_experience_updated_at ON founder_experience;
+    CREATE TRIGGER founder_experience_updated_at
+      BEFORE UPDATE ON founder_experience
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Proyectos del portafolio personal del fundador ──────────────────────────
+    CREATE TABLE IF NOT EXISTS founder_projects (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      title         VARCHAR(160) NOT NULL,
+      description   TEXT         NOT NULL DEFAULT '',
+      image_url     VARCHAR(400),
+      technologies  JSONB        NOT NULL DEFAULT '[]',
+      github_link   VARCHAR(400),
+      live_link     VARCHAR(400),
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS founder_projects_updated_at ON founder_projects;
+    CREATE TRIGGER founder_projects_updated_at
+      BEFORE UPDATE ON founder_projects
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Certificaciones del fundador ─────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS founder_certifications (
+      id                UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      name              VARCHAR(200) NOT NULL,
+      issuer            VARCHAR(160) NOT NULL DEFAULT '',
+      issuer_logo_url   VARCHAR(400),
+      certificate_link  VARCHAR(400),
+      date_earned       VARCHAR(40)  NOT NULL DEFAULT '',
+      sort_order        INT          NOT NULL DEFAULT 0,
+      created_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS founder_certifications_updated_at ON founder_certifications;
+    CREATE TRIGGER founder_certifications_updated_at
+      BEFORE UPDATE ON founder_certifications
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
   `;
 
   try {
@@ -230,6 +303,9 @@ const createTables = async () => {
     await seedSaasSteps();
     await seedCustomSteps();
     await seedProblemCards();
+    await seedTeamMembers();
+    await seedFounderExperience();
+    await seedFounderProjects();
     await seedAdmin();
   } catch (err) {
     console.error('❌ Error creando tablas:', err.message);
@@ -259,7 +335,6 @@ const seedSettings = async () => {
     about_negocios:        '1',
     about_sectores:        '1',
     about_values_heading:  'Lo que nos mueve',
-    about_team_text:       '',
     descargas_subtitle:    'Todas las apps de Leybrak listas para instalar. Iremos sumando cada nuevo sistema aquí a medida que esté disponible.',
     descargas_empty_text:  'Todavía no hay descargas disponibles. Vuelve pronto.',
 
@@ -295,6 +370,17 @@ const seedSettings = async () => {
     howitworks_custom_tag:        'Diagnóstico inicial sin costo',
     howitworks_custom_cta:        'Agendar diagnóstico gratis',
     howitworks_footer_note:       '// En cualquier caso — sin contratos largos, sin letra chica',
+
+    // Portafolio del fundador (/portafolio)
+    founder_status_label:     'Disponible para proyectos',
+    founder_headline:         'Ingeniero de Ciencia de Datos & IA',
+    founder_bio:              'Especializado en la transformación de datos complejos mediante arquitectura Kimball y flujos ETL en activos estratégicos para negocios reales.',
+    founder_location:         'Lima, Perú',
+    founder_cv_url:           '',
+    founder_linkedin_url:     'https://linkedin.com/in/sebastian-silva-mendoza',
+    founder_github_url:       'https://github.com/SebastianSilvaMendoza',
+    founder_personal_note:    'Más allá del código, me enfoco en el desarrollo personal, el fitness y la cultura JDM/Car Tuning. Sigo construyendo soluciones tecnológicas de alto nivel mientras hacemos crecer Leybrak.',
+    founder_contact_subtitle: 'Abierto a oportunidades de colaboración y proyectos estratégicos de Business Intelligence y desarrollo de software.',
   };
 
   for (const [key, value] of Object.entries(defaults)) {
@@ -561,6 +647,69 @@ const seedProblemCards = async () => {
     );
   }
   console.log('✅ Tarjetas de problemas cargadas');
+};
+
+// ── Equipo inicial de /nosotros — el fundador, para que la página no salga vacía ──
+const seedTeamMembers = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM team_members');
+  if (parseInt(rows[0].count) > 0) return;
+
+  await pool.query(
+    `INSERT INTO team_members (name, role, bio, linkedin_url, github_url, is_founder, sort_order)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      'Sebastián Silva Mendoza',
+      'Fundador · Full-stack & Data',
+      'Ingeniero de Ciencia de Datos & IA. Construye Leybrak de punta a punta: desde el software hasta la data que lo respalda.',
+      'https://linkedin.com/in/sebastian-silva-mendoza',
+      'https://github.com/SebastianSilvaMendoza',
+      true,
+      1,
+    ]
+  );
+  console.log('✅ Equipo inicial cargado (fundador)');
+};
+
+// ── Trayectoria inicial del fundador, para que /portafolio no salga vacío ─────
+const seedFounderExperience = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM founder_experience');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const items = [
+    { date_label: '2026 — Actualidad',      title: 'Fundador — Leybrak',
+      description: 'Construyendo Leybrak: software y automatización para negocios que todavía dependen del papel y el Excel.' },
+    { date_label: '2026 — Actualidad',      title: 'Backend Developer Intern',
+      description: 'Desarrollo de módulos de facturación y lógica de negocio para sistemas ERP mediante React, Vite y Supabase.' },
+    { date_label: '2024 — 2027 (egreso)',   title: 'Ciencia de Datos e IA — SENATI',
+      description: 'Formación académica enfocada en Inteligencia de Negocios, Estadística Aplicada e Integración de Datos.' },
+    { date_label: '2024 — Actualidad',      title: 'Freelance BI Developer',
+      description: 'Diseño de Datamarts para el sector textil en Gamarra, optimizando el análisis de ventas e inventarios mediante SQL Server y Power BI.' },
+  ];
+
+  for (let i = 0; i < items.length; i++) {
+    await pool.query(
+      `INSERT INTO founder_experience (date_label, title, description, sort_order) VALUES ($1, $2, $3, $4)`,
+      [items[i].date_label, items[i].title, items[i].description, i + 1]
+    );
+  }
+  console.log('✅ Trayectoria inicial del fundador cargada');
+};
+
+// ── Proyecto inicial del portafolio del fundador ──────────────────────────────
+const seedFounderProjects = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM founder_projects');
+  if (parseInt(rows[0].count) > 0) return;
+
+  await pool.query(
+    `INSERT INTO founder_projects (title, description, technologies, sort_order) VALUES ($1, $2, $3, $4)`,
+    [
+      'Leybrak — Web y panel autoadministrable',
+      'Sitio web de Leybrak con un panel de administración 100% autogestionable: productos, planes, contenido de cada página y este mismo portafolio se editan sin tocar código.',
+      JSON.stringify(['React', 'Node.js', 'Express', 'PostgreSQL', 'Tailwind CSS']),
+      1,
+    ]
+  );
+  console.log('✅ Proyecto inicial del portafolio cargado');
 };
 
 // ── Usuario admin inicial, tomado de las variables de entorno ─────────────────

@@ -14,7 +14,7 @@ const leadRules = [
 
   body('servicio')
     .optional()
-    .isIn(['saas', 'custom', 'data_vision', 'general', ''])
+    .isIn(['saas', 'custom', 'data_vision', 'general', 'portafolio', ''])
     .withMessage('Servicio no válido'),
 
   body('mensaje')
@@ -133,6 +133,92 @@ const problemCardRules = [
     .isInt().withMessage('El orden debe ser un número'),
 ];
 
+// ── Reglas para miembros del equipo (Nosotros) ────────────────────────────────
+const teamMemberRules = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('El nombre es requerido')
+    .isLength({ max: 160 }).withMessage('El nombre no puede superar los 160 caracteres'),
+
+  body('role')
+    .optional()
+    .trim()
+    .isLength({ max: 160 }).withMessage('El rol no puede superar los 160 caracteres'),
+
+  body('bio')
+    .optional()
+    .trim()
+    .isLength({ max: 1000 }).withMessage('La bio no puede superar los 1000 caracteres'),
+
+  body('isFounder')
+    .optional()
+    .isBoolean().withMessage('isFounder debe ser verdadero o falso'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
+// ── Reglas para la trayectoria del fundador (/portafolio) ─────────────────────
+const founderExperienceRules = [
+  body('dateLabel')
+    .optional()
+    .trim()
+    .isLength({ max: 80 }).withMessage('La fecha no puede superar los 80 caracteres'),
+
+  body('title')
+    .trim()
+    .notEmpty().withMessage('El título es requerido')
+    .isLength({ max: 160 }).withMessage('El título no puede superar los 160 caracteres'),
+
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 1000 }).withMessage('La descripción no puede superar los 1000 caracteres'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
+// ── Reglas para proyectos del portafolio del fundador ─────────────────────────
+const founderProjectRules = [
+  body('title')
+    .trim()
+    .notEmpty().withMessage('El título es requerido')
+    .isLength({ max: 160 }).withMessage('El título no puede superar los 160 caracteres'),
+
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 1000 }).withMessage('La descripción no puede superar los 1000 caracteres'),
+
+  body('technologies')
+    .optional()
+    .isArray().withMessage('Las tecnologías deben ser una lista'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
+// ── Reglas para certificaciones del fundador ──────────────────────────────────
+const founderCertificationRules = [
+  body('name')
+    .trim()
+    .notEmpty().withMessage('El nombre es requerido')
+    .isLength({ max: 200 }).withMessage('El nombre no puede superar los 200 caracteres'),
+
+  body('issuer')
+    .optional()
+    .trim()
+    .isLength({ max: 160 }).withMessage('El emisor no puede superar los 160 caracteres'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
 // ── Middleware que verifica los resultados ────────────────────────────────────
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -145,4 +231,8 @@ const validate = (req, res, next) => {
   next();
 };
 
-module.exports = { leadRules, productRules, planRules, contentItemRules, problemCardRules, validate };
+module.exports = {
+  leadRules, productRules, planRules, contentItemRules, problemCardRules,
+  teamMemberRules, founderExperienceRules, founderProjectRules, founderCertificationRules,
+  validate,
+};

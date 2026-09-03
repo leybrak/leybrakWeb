@@ -7,7 +7,7 @@ export const useLead = () => {
   const [status,   setStatus]   = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
   const [errorMsg, setErrorMsg] = useState('');
 
-  const submit = async ({ nombre, telefono, servicio = 'general', origen = 'formulario' }) => {
+  const submit = async ({ nombre, telefono, servicio = 'general', origen = 'formulario', mensaje = '' }) => {
     setStatus('loading');
     setErrorMsg('');
 
@@ -15,7 +15,7 @@ export const useLead = () => {
       const res = await fetch(`${API_URL}/api/leads`, {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ nombre, telefono, servicio, origen }),
+        body:    JSON.stringify({ nombre, telefono, servicio, origen, mensaje }),
       });
 
       const data = await res.json();

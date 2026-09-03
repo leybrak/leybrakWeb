@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, User } from 'lucide-react';
+import { FaLinkedin, FaGithub } from 'react-icons/fa6';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useContentItems } from '../hooks/useContentItems';
 
@@ -9,6 +10,7 @@ const Nosotros = () => {
   const sectionRef = useRef(null);
   const { settings } = useSiteSettings();
   const { items: values } = useContentItems('/api/about-values');
+  const { items: team }   = useContentItems('/api/team-members');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -119,18 +121,65 @@ const Nosotros = () => {
           </div>
         </div>
 
-        {/* Equipo — solo se muestra si hay texto cargado desde el panel */}
-        {settings.about_team_text && (
-          <div className="fade-in border-2 border-dashed border-gray-300 dark:border-gray-700 p-10 mb-16 text-center">
-            <p className="font-mono text-[11px] text-gray-400 uppercase tracking-widest mb-2">
-              // EQUIPO
-            </p>
-            <p
-              className="text-gray-500 dark:text-gray-500 text-[0.9rem]"
-              style={{ fontFamily: "'Barlow', sans-serif" }}
-            >
-              {settings.about_team_text}
-            </p>
+        {/* Equipo */}
+        {team.length > 0 && (
+          <div className="fade-in mb-16">
+            <h2 className="text-[1.6rem] font-black uppercase tracking-tight text-gray-900 dark:text-white mb-8 border-b-2 border-gray-900/10 dark:border-white/10 pb-4">
+              El equipo
+            </h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0 border-l-2 border-t-2 border-gray-900 dark:border-white/10">
+              {team.map((m) => (
+                <div key={m.id} className="border-r-2 border-b-2 border-gray-900 dark:border-white/10 p-8 flex flex-col items-start">
+                  <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-200 dark:bg-white/10 border-2 border-gray-900/10 dark:border-white/10 flex items-center justify-center mb-4 flex-shrink-0">
+                    {m.photoUrl
+                      ? <img src={m.photoUrl} alt={m.name} className="w-full h-full object-cover" />
+                      : <User size={24} className="text-gray-400" />}
+                  </div>
+                  {m.isFounder && (
+                    <span className="inline-flex items-center bg-leybrak-blue text-white text-[9px] px-2 py-1 uppercase tracking-[0.2em] font-bold mb-3 w-fit">
+                      Fundador
+                    </span>
+                  )}
+                  <h3 className="text-[1.1rem] font-black uppercase text-gray-900 dark:text-white tracking-tight">
+                    {m.name}
+                  </h3>
+                  {m.role && (
+                    <p className="text-leybrak-blue text-[0.8rem] font-mono mt-1">{m.role}</p>
+                  )}
+                  {m.bio && (
+                    <p className="text-[0.85rem] text-gray-500 dark:text-gray-400 leading-relaxed mt-3"
+                       style={{ fontFamily: "'Barlow', sans-serif" }}>
+                      {m.bio}
+                    </p>
+                  )}
+
+                  {m.isFounder ? (
+                    <Link
+                      to="/portafolio"
+                      className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-widest text-leybrak-blue mt-4 hover:underline group"
+                    >
+                      Ver portafolio completo
+                      <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  ) : (m.linkedinUrl || m.githubUrl) && (
+                    <div className="flex gap-3 mt-4">
+                      {m.linkedinUrl && (
+                        <a href={m.linkedinUrl} target="_blank" rel="noopener noreferrer"
+                           className="text-gray-400 hover:text-leybrak-blue transition-colors">
+                          <FaLinkedin size={16} />
+                        </a>
+                      )}
+                      {m.githubUrl && (
+                        <a href={m.githubUrl} target="_blank" rel="noopener noreferrer"
+                           className="text-gray-400 hover:text-leybrak-blue transition-colors">
+                          <FaGithub size={16} />
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -14,6 +14,10 @@ const manifestoRouter   = require('./routes/manifesto.routes');
 const saasStepsRouter   = require('./routes/saasSteps.routes');
 const customStepsRouter = require('./routes/customSteps.routes');
 const problemCardsRouter = require('./routes/problemCards.routes');
+const teamMembersRouter  = require('./routes/teamMembers.routes');
+const founderExperienceRouter     = require('./routes/founderExperience.routes');
+const founderProjectsRouter       = require('./routes/founderProjects.routes');
+const founderCertificationsRouter = require('./routes/founderCertifications.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -60,6 +64,10 @@ app.use('/api/manifesto',    manifestoRouter);
 app.use('/api/saas-steps',   saasStepsRouter);
 app.use('/api/custom-steps', customStepsRouter);
 app.use('/api/problem-cards', problemCardsRouter);
+app.use('/api/team-members',  teamMembersRouter);
+app.use('/api/founder-experience',     founderExperienceRouter);
+app.use('/api/founder-projects',       founderProjectsRouter);
+app.use('/api/founder-certifications', founderCertificationsRouter);
 
 // Health check — útil para saber si el servidor está vivo desde el VPS
 app.get('/health', (_, res) => {
