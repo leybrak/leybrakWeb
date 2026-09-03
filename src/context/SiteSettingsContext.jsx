@@ -69,6 +69,9 @@ export const DEFAULT_SETTINGS = {
   founder_github_url:        '',
   founder_personal_note:     '',
   founder_contact_subtitle:  '',
+  founder_email:             '',
+  founder_skills:            '',
+  founder_interests:         '',
 };
 
 export const SiteSettingsProvider = ({ children }) => {

@@ -60,6 +60,9 @@ const ALLOWED_KEYS = [
   'founder_github_url',
   'founder_personal_note',
   'founder_contact_subtitle',
+  'founder_email',
+  'founder_skills',
+  'founder_interests',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────
