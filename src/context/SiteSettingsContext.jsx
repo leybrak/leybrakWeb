@@ -27,7 +27,6 @@ export const DEFAULT_SETTINGS = {
   about_negocios:        '1',
   about_sectores:        '1',
   about_values_heading:  'Lo que nos mueve',
-  about_team_text:       '',
   descargas_subtitle:    'Todas las apps de Leybrak listas para instalar. Iremos sumando cada nuevo sistema aquí a medida que esté disponible.',
   descargas_empty_text:  'Todavía no hay descargas disponibles. Vuelve pronto.',
 
@@ -60,6 +59,16 @@ export const DEFAULT_SETTINGS = {
   howitworks_custom_tag:        'Diagnóstico inicial sin costo',
   howitworks_custom_cta:        'Agendar diagnóstico gratis',
   howitworks_footer_note:       '// En cualquier caso — sin contratos largos, sin letra chica',
+
+  founder_status_label:     'Disponible para proyectos',
+  founder_headline:         '',
+  founder_bio:               '',
+  founder_location:          '',
+  founder_cv_url:            '',
+  founder_linkedin_url:      '',
+  founder_github_url:        '',
+  founder_personal_note:     '',
+  founder_contact_subtitle:  '',
 };
 
 export const SiteSettingsProvider = ({ children }) => {

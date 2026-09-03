@@ -9,7 +9,7 @@ const AboutPanel = () => {
 
   const [form, setForm]       = useState({
     about_founded: '', about_city: '', about_mission: '',
-    about_negocios: '', about_sectores: '', about_values_heading: '', about_team_text: '',
+    about_negocios: '', about_sectores: '', about_values_heading: '',
   });
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
@@ -23,7 +23,6 @@ const AboutPanel = () => {
       about_negocios:       settings.about_negocios || '',
       about_sectores:       settings.about_sectores || '',
       about_values_heading: settings.about_values_heading || '',
-      about_team_text:      settings.about_team_text || '',
     }))();
   }, [settings]);
 
@@ -106,16 +105,6 @@ const AboutPanel = () => {
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-            Texto del bloque "equipo" (déjalo vacío para no mostrar nada ahí)
-            <textarea
-              value={form.about_team_text}
-              onChange={e => setForm(p => ({ ...p, about_team_text: e.target.value }))}
-              rows={3}
-              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
-            />
-          </label>
-
           {error && <p className="text-red-500 text-[12px] font-mono">{error}</p>}
           {success && <p className="text-green-500 text-[12px] font-mono">{success}</p>}
 
@@ -130,6 +119,11 @@ const AboutPanel = () => {
       </div>
 
       <ContentItemsPanel heading='Nosotros — "Lo que nos mueve"' apiPath="/api/about-values" itemLabel="valor" />
+
+      <p className="text-gray-400 text-[11px] font-mono normal-case">
+        El equipo que se muestra en /nosotros se administra en la pestaña "Equipo" —
+        y tu portafolio completo (CV, proyectos, certificaciones) en la pestaña "Portafolio".
+      </p>
     </div>
   );
 };

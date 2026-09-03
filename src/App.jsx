@@ -10,6 +10,7 @@ import SoftwareAMedida from './pages/SoftwareAMedida.jsx';
 import ProductDetail   from './pages/ProductDetail.jsx';
 import Servicios       from './pages/Servicios.jsx';
 import Nosotros        from './pages/Nosotros.jsx';
+import Portfolio       from './pages/Portfolio.jsx';
 import Descargas       from './pages/Descargas.jsx';
 import NotFound        from './pages/NotFound.jsx';
 import AdminLogin      from './pages/Admin/AdminLogin.jsx';
@@ -38,6 +39,7 @@ function App() {
               <Route path="/softwares/:slug"         element={<ProductDetail />}   />
               <Route path="/servicios"               element={<Servicios />}       />
               <Route path="/nosotros"                element={<Nosotros />}        />
+              <Route path="/portafolio"              element={<Portfolio />}       />
               <Route path="/descargas"               element={<Descargas />}       />
               <Route path="/admin/login"             element={<AdminLogin />}      />
               <Route path="/admin" element={

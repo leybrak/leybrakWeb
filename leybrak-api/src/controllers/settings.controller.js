@@ -20,7 +20,6 @@ const ALLOWED_KEYS = [
   'about_negocios',
   'about_sectores',
   'about_values_heading',
-  'about_team_text',
   'descargas_subtitle',
   'descargas_empty_text',
   'hero_label',
@@ -50,6 +49,17 @@ const ALLOWED_KEYS = [
   'howitworks_custom_tag',
   'howitworks_custom_cta',
   'howitworks_footer_note',
+
+  // Portafolio del fundador (/portafolio)
+  'founder_status_label',
+  'founder_headline',
+  'founder_bio',
+  'founder_location',
+  'founder_cv_url',
+  'founder_linkedin_url',
+  'founder_github_url',
+  'founder_personal_note',
+  'founder_contact_subtitle',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────
