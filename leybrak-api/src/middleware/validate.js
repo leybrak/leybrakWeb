@@ -223,6 +223,45 @@ const founderCertificationRules = [
     .isInt().withMessage('El orden debe ser un número'),
 ];
 
+// ── Reglas para testimonios del portafolio del fundador ───────────────────────
+const founderTestimonialRules = [
+  body('quote')
+    .trim()
+    .notEmpty().withMessage('La frase es requerida')
+    .isLength({ max: 600 }).withMessage('La frase no puede superar los 600 caracteres'),
+
+  body('authorName')
+    .trim()
+    .notEmpty().withMessage('El nombre del autor es requerido')
+    .isLength({ max: 160 }).withMessage('El nombre no puede superar los 160 caracteres'),
+
+  body('authorRole')
+    .optional()
+    .trim()
+    .isLength({ max: 160 }).withMessage('El rol no puede superar los 160 caracteres'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
+// ── Reglas para métricas del hero del portafolio ───────────────────────────────
+const founderMetricRules = [
+  body('label')
+    .trim()
+    .notEmpty().withMessage('La etiqueta es requerida')
+    .isLength({ max: 80 }).withMessage('La etiqueta no puede superar los 80 caracteres'),
+
+  body('value')
+    .optional()
+    .trim()
+    .isLength({ max: 120 }).withMessage('El valor no puede superar los 120 caracteres'),
+
+  body('sortOrder')
+    .optional()
+    .isInt().withMessage('El orden debe ser un número'),
+];
+
 // ── Middleware que verifica los resultados ────────────────────────────────────
 const validate = (req, res, next) => {
   const errors = validationResult(req);
@@ -238,5 +277,6 @@ const validate = (req, res, next) => {
 module.exports = {
   leadRules, productRules, planRules, contentItemRules, problemCardRules,
   teamMemberRules, founderExperienceRules, founderProjectRules, founderCertificationRules,
+  founderTestimonialRules, founderMetricRules,
   validate,
 };

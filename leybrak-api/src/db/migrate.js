@@ -290,6 +290,37 @@ const createTables = async () => {
     CREATE TRIGGER founder_certifications_updated_at
       BEFORE UPDATE ON founder_certifications
       FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Testimonios de clientes/colegas para el portafolio del fundador ────────
+    CREATE TABLE IF NOT EXISTS founder_testimonials (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      quote         TEXT         NOT NULL,
+      author_name   VARCHAR(160) NOT NULL,
+      author_role   VARCHAR(160) NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS founder_testimonials_updated_at ON founder_testimonials;
+    CREATE TRIGGER founder_testimonials_updated_at
+      BEFORE UPDATE ON founder_testimonials
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+    -- ── Métricas rápidas del hero del portafolio (ej. "3+ años", "Kimball") ────
+    CREATE TABLE IF NOT EXISTS founder_metrics (
+      id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      label         VARCHAR(80)  NOT NULL,
+      value         VARCHAR(120) NOT NULL DEFAULT '',
+      sort_order    INT          NOT NULL DEFAULT 0,
+      created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    DROP TRIGGER IF EXISTS founder_metrics_updated_at ON founder_metrics;
+    CREATE TRIGGER founder_metrics_updated_at
+      BEFORE UPDATE ON founder_metrics
+      FOR EACH ROW EXECUTE FUNCTION update_updated_at();
   `;
 
   try {
@@ -310,6 +341,7 @@ const createTables = async () => {
     await seedFounderExperience();
     await backfillFounderExperienceEducation();
     await seedFounderProjects();
+    await seedFounderMetrics();
     await seedAdmin();
   } catch (err) {
     console.error('❌ Error creando tablas:', err.message);
@@ -386,8 +418,9 @@ const seedSettings = async () => {
     founder_personal_note:    'Más allá del código, me enfoco en el desarrollo personal, el fitness y la cultura JDM/Car Tuning. Sigo construyendo soluciones tecnológicas de alto nivel mientras hacemos crecer Leybrak.',
     founder_contact_subtitle: 'Abierto a oportunidades de colaboración y proyectos estratégicos de Business Intelligence y desarrollo de software.',
     founder_email:            '',
-    founder_skills:           'SQL Server\nPower BI\nPython\nETL / SSIS\nn8n\nReact\nNode.js\nPostgreSQL\nMetodología Kimball\nEstadística aplicada',
+    founder_skills:           'Lenguajes & Data: SQL Server, Python, Estadística aplicada\nBI & Automatización: Power BI, ETL / SSIS, n8n, Metodología Kimball\nDesarrollo: React, Node.js, PostgreSQL',
     founder_interests:        'Fitness y gimnasio\nCultura JDM / Car tuning\nCiencia de datos',
+    founder_languages:        'Español: Nativo',
   };
 
   for (const [key, value] of Object.entries(defaults)) {
@@ -725,6 +758,27 @@ const seedFounderProjects = async () => {
     ]
   );
   console.log('✅ Proyecto inicial del portafolio cargado');
+};
+
+// ── Métricas iniciales del hero del portafolio, para que no salga vacío ──────
+const seedFounderMetrics = async () => {
+  const { rows } = await pool.query('SELECT COUNT(*) FROM founder_metrics');
+  if (parseInt(rows[0].count) > 0) return;
+
+  const metrics = [
+    { label: 'Especialidad',  value: 'Metodología Kimball' },
+    { label: 'Integración',   value: 'SSIS & n8n' },
+    { label: 'Visualización', value: 'Power BI' },
+    { label: 'Análisis',      value: 'SQL Server & Python' },
+  ];
+
+  for (let i = 0; i < metrics.length; i++) {
+    await pool.query(
+      `INSERT INTO founder_metrics (label, value, sort_order) VALUES ($1, $2, $3)`,
+      [metrics[i].label, metrics[i].value, i + 1]
+    );
+  }
+  console.log('✅ Métricas iniciales del portafolio cargadas');
 };
 
 // ── Usuario admin inicial, tomado de las variables de entorno ─────────────────

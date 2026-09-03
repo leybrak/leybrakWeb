@@ -72,6 +72,7 @@ export const DEFAULT_SETTINGS = {
   founder_email:             '',
   founder_skills:            '',
   founder_interests:         '',
+  founder_languages:         '',
 };
 
 export const SiteSettingsProvider = ({ children }) => {
