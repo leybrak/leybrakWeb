@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Download, MessageCircle, ExternalLink, Send, User, Mail, Briefcase, GraduationCap, Code2 } from 'lucide-react';
+import { ArrowRight, Download, MessageCircle, ExternalLink, Send, User, Mail, Briefcase, GraduationCap, Code2, Quote, Languages } from 'lucide-react';
 import { FaLinkedin, FaGithub } from 'react-icons/fa6';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useContentItems } from '../hooks/useContentItems';
@@ -18,6 +18,32 @@ const DEFAULT_FOUNDER = {
 
 // Convierte un texto "uno por línea" (como se guarda en settings) en una lista limpia
 const parseLines = (text) => (text || '').split('\n').map(l => l.trim()).filter(Boolean);
+
+// Convierte líneas "Etiqueta: valor" en pares {label, value}
+const parseLabeledLines = (text) => parseLines(text).map(line => {
+  const idx = line.indexOf(':');
+  if (idx === -1) return { label: line, value: '' };
+  return { label: line.slice(0, idx).trim(), value: line.slice(idx + 1).trim() };
+});
+
+// Convierte "Categoría: tec1, tec2" por línea en grupos {label, items[]} —
+// una línea sin ":" cae en un grupo genérico "General" para no perder nada.
+const parseSkillCategories = (text) => {
+  const categories = [];
+  parseLines(text).forEach(line => {
+    const idx = line.indexOf(':');
+    if (idx === -1) {
+      let generic = categories.find(c => c.label === 'General');
+      if (!generic) { generic = { label: 'General', items: [] }; categories.push(generic); }
+      generic.items.push(line);
+    } else {
+      const label = line.slice(0, idx).trim();
+      const items = line.slice(idx + 1).split(',').map(v => v.trim()).filter(Boolean);
+      if (items.length > 0) categories.push({ label, items });
+    }
+  });
+  return categories;
+};
 
 // ─── Formulario de contacto — usa el mismo sistema de leads que el resto de la web ──
 const ContactForm = () => {
@@ -110,12 +136,15 @@ const Portfolio = () => {
   const { items: experience } = useContentItems('/api/founder-experience');
   const { items: projects }   = useContentItems('/api/founder-projects');
   const { items: certifications } = useContentItems('/api/founder-certifications');
+  const { items: testimonials }   = useContentItems('/api/founder-testimonials');
+  const { items: metrics }        = useContentItems('/api/founder-metrics');
 
   const founder = team.find(m => m.isFounder) || DEFAULT_FOUNDER;
   const WA_BASE = `https://wa.me/${settings.whatsapp_number}`;
   const waMessage = encodeURIComponent(`Hola ${founder.name.split(' ')[0]}, vi tu portafolio en la web de Leybrak y quiero conversar.`);
 
-  const skills     = parseLines(settings.founder_skills);
+  const skillCategories = parseSkillCategories(settings.founder_skills);
+  const languages  = parseLabeledLines(settings.founder_languages).filter(l => l.value);
   const interests  = parseLines(settings.founder_interests);
   const workExperience = experience.filter(e => e.type !== 'education');
   const education       = experience.filter(e => e.type === 'education');
@@ -246,27 +275,67 @@ const Portfolio = () => {
           </div>
         </section>
 
-        {/* ── TECNOLOGÍAS ──────────────────────────────────────────────────── */}
-        {skills.length > 0 && (
-          <section ref={el => sectionRefs.current[0] = el} className="py-14 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
-            <div className="max-w-5xl mx-auto">
-              <span className="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-6 block w-fit">
-                <Code2 size={13} /> // TECNOLOGÍAS
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {skills.map((s, i) => (
-                  <span key={i} className="text-[12px] font-bold px-4 py-2 border-2 border-gray-900/10 dark:border-white/10 text-gray-700 dark:text-gray-300 uppercase tracking-wide hover:border-leybrak-blue hover:text-leybrak-blue transition-colors">
-                    {s}
+        {/* ── MÉTRICAS RÁPIDAS ─────────────────────────────────────────────── */}
+        {metrics.length > 0 && (
+          <section ref={el => sectionRefs.current[0] = el} className="py-10 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
+            <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3">
+              {metrics.map((m) => (
+                <div key={m.id} className="p-5 border-2 border-gray-900/10 dark:border-white/10">
+                  <p className="text-leybrak-blue text-[10px] font-mono uppercase tracking-widest mb-2">{m.label}</p>
+                  <p className="text-[1.05rem] font-black text-gray-900 dark:text-white uppercase leading-tight">{m.value}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── TECNOLOGÍAS E IDIOMAS ────────────────────────────────────────── */}
+        {(skillCategories.length > 0 || languages.length > 0) && (
+          <section ref={el => sectionRefs.current[1] = el} className="py-14 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
+            <div className="max-w-5xl mx-auto flex flex-col gap-8">
+              {skillCategories.length > 0 && (
+                <div>
+                  <span className="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-6 block w-fit">
+                    <Code2 size={13} /> // TECNOLOGÍAS
                   </span>
-                ))}
-              </div>
+                  <div className="flex flex-col gap-5">
+                    {skillCategories.map((cat, i) => (
+                      <div key={i}>
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-400 mb-2">{cat.label}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {cat.items.map((s, j) => (
+                            <span key={j} className="text-[12px] font-bold px-4 py-2 border-2 border-gray-900/10 dark:border-white/10 text-gray-700 dark:text-gray-300 uppercase tracking-wide hover:border-leybrak-blue hover:text-leybrak-blue transition-colors">
+                              {s}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {languages.length > 0 && (
+                <div>
+                  <span className="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-6 block w-fit">
+                    <Languages size={13} /> // IDIOMAS
+                  </span>
+                  <div className="flex flex-wrap gap-2">
+                    {languages.map((l, i) => (
+                      <span key={i} className="text-[12px] font-bold px-4 py-2 border-2 border-gray-900/10 dark:border-white/10 text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+                        {l.label} <span className="text-leybrak-blue">— {l.value}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )}
 
         {/* ── TRAYECTORIA — experiencia y educación por separado ──────────── */}
         {experience.length > 0 && (
-          <section ref={el => sectionRefs.current[1] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-900 dark:bg-[#050507]">
+          <section ref={el => sectionRefs.current[2] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-900 dark:bg-[#050507]">
             <div className="max-w-6xl mx-auto">
               <div className="mb-14">
                 <span className="inline-flex items-center bg-white text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-4 block w-fit">
@@ -330,7 +399,7 @@ const Portfolio = () => {
 
         {/* ── PROYECTOS ────────────────────────────────────────────────────── */}
         {projects.length > 0 && (
-          <section ref={el => sectionRefs.current[2] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
+          <section ref={el => sectionRefs.current[3] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
             <div className="max-w-7xl mx-auto">
               <div className="mb-14">
                 <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-4 block w-fit">
@@ -392,7 +461,7 @@ const Portfolio = () => {
 
         {/* ── CERTIFICACIONES ─────────────────────────────────────────────── */}
         {certifications.length > 0 && (
-          <section ref={el => sectionRefs.current[3] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-50 dark:bg-[#08080a]">
+          <section ref={el => sectionRefs.current[4] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-50 dark:bg-[#08080a]">
             <div className="max-w-7xl mx-auto">
               <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-8 block w-fit">
                 // CERTIFICACIONES
@@ -426,9 +495,35 @@ const Portfolio = () => {
           </section>
         )}
 
+        {/* ── TESTIMONIOS ──────────────────────────────────────────────────── */}
+        {testimonials.length > 0 && (
+          <section ref={el => sectionRefs.current[5] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
+            <div className="max-w-6xl mx-auto">
+              <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-10 block w-fit">
+                // TESTIMONIOS
+              </span>
+              <div className="grid md:grid-cols-2 gap-6">
+                {testimonials.map((t) => (
+                  <div key={t.id} className="relative border-2 border-gray-900 dark:border-white/10 bg-white dark:bg-[#0f0f12] p-8">
+                    <Quote size={32} className="absolute top-6 right-6 text-leybrak-blue/15" />
+                    <p className="relative z-10 text-gray-700 dark:text-gray-300 text-[1rem] leading-relaxed mb-6"
+                       style={{ fontFamily: "'Barlow', sans-serif" }}>
+                      "{t.quote}"
+                    </p>
+                    <p className="font-black uppercase text-gray-900 dark:text-white text-[0.9rem]">{t.authorName}</p>
+                    {t.authorRole && (
+                      <p className="text-gray-500 dark:text-gray-400 text-[0.8rem] font-mono">{t.authorRole}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* ── SOBRE MÍ ─────────────────────────────────────────────────────── */}
         {settings.founder_personal_note && (
-          <section ref={el => sectionRefs.current[4] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
+          <section ref={el => sectionRefs.current[6] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
             <div className="max-w-3xl mx-auto text-center">
               <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-6">
                 // SOBRE_MÍ
@@ -450,7 +545,7 @@ const Portfolio = () => {
         )}
 
         {/* ── CONTACTO ─────────────────────────────────────────────────────── */}
-        <section ref={el => sectionRefs.current[5] = el} className="py-20 px-6 bg-gray-900 dark:bg-[#050507]">
+        <section ref={el => sectionRefs.current[7] = el} className="py-20 px-6 bg-gray-900 dark:bg-[#050507]">
           <div className="max-w-5xl mx-auto">
             <div className="grid md:grid-cols-2 gap-0 border-2 border-white/10">
               <div className="p-10 border-b-2 md:border-b-0 md:border-r-2 border-white/10 flex flex-col justify-between gap-8">

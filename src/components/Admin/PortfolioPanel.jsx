@@ -4,11 +4,14 @@ import { useSiteSettings } from '../../hooks/useSiteSettings';
 import FounderExperiencePanel from './FounderExperiencePanel';
 import FounderProjectsPanel from './FounderProjectsPanel';
 import FounderCertificationsPanel from './FounderCertificationsPanel';
+import FounderMetricsPanel from './FounderMetricsPanel';
+import FounderTestimonialsPanel from './FounderTestimonialsPanel';
 
 const FIELDS = [
   'founder_status_label', 'founder_headline', 'founder_bio', 'founder_location',
   'founder_cv_url', 'founder_email', 'founder_linkedin_url', 'founder_github_url',
-  'founder_skills', 'founder_personal_note', 'founder_interests', 'founder_contact_subtitle',
+  'founder_skills', 'founder_languages', 'founder_personal_note', 'founder_interests',
+  'founder_contact_subtitle',
 ];
 
 // Panel de "Portafolio" — tu CV/portafolio público en /portafolio. El nombre,
@@ -135,12 +138,23 @@ const PortfolioPanel = () => {
           </div>
 
           <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-            Tecnologías que dominas (una por línea — aparecen como etiquetas)
+            Tecnologías por categoría (una categoría por línea: "Categoría: tec1, tec2, tec3")
             <textarea
               value={form.founder_skills}
               onChange={e => setForm(p => ({ ...p, founder_skills: e.target.value }))}
               rows={4}
-              placeholder={'React\nNode.js\nPostgreSQL'}
+              placeholder={'Backend: Node.js, Express\nBase de datos: PostgreSQL, MySQL'}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            Idiomas (opcional, uno por línea: "Idioma: Nivel")
+            <textarea
+              value={form.founder_languages}
+              onChange={e => setForm(p => ({ ...p, founder_languages: e.target.value }))}
+              rows={2}
+              placeholder={'Español: Nativo\nInglés: B2'}
               className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
             />
           </label>
@@ -189,9 +203,11 @@ const PortfolioPanel = () => {
         </form>
       </div>
 
+      <FounderMetricsPanel />
       <FounderExperiencePanel />
       <FounderProjectsPanel />
       <FounderCertificationsPanel />
+      <FounderTestimonialsPanel />
     </div>
   );
 };

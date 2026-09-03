@@ -63,6 +63,7 @@ const ALLOWED_KEYS = [
   'founder_email',
   'founder_skills',
   'founder_interests',
+  'founder_languages',
 ];
 
 // ── GET /api/settings — público, lo consume la web ────────────────────────────

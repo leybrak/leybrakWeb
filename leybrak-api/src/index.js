@@ -18,6 +18,8 @@ const teamMembersRouter  = require('./routes/teamMembers.routes');
 const founderExperienceRouter     = require('./routes/founderExperience.routes');
 const founderProjectsRouter       = require('./routes/founderProjects.routes');
 const founderCertificationsRouter = require('./routes/founderCertifications.routes');
+const founderTestimonialsRouter   = require('./routes/founderTestimonials.routes');
+const founderMetricsRouter        = require('./routes/founderMetrics.routes');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -68,6 +70,8 @@ app.use('/api/team-members',  teamMembersRouter);
 app.use('/api/founder-experience',     founderExperienceRouter);
 app.use('/api/founder-projects',       founderProjectsRouter);
 app.use('/api/founder-certifications', founderCertificationsRouter);
+app.use('/api/founder-testimonials',   founderTestimonialsRouter);
+app.use('/api/founder-metrics',        founderMetricsRouter);
 
 // Health check — útil para saber si el servidor está vivo desde el VPS
 app.get('/health', (_, res) => {
