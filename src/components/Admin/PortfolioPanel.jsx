@@ -7,8 +7,8 @@ import FounderCertificationsPanel from './FounderCertificationsPanel';
 
 const FIELDS = [
   'founder_status_label', 'founder_headline', 'founder_bio', 'founder_location',
-  'founder_cv_url', 'founder_linkedin_url', 'founder_github_url',
-  'founder_personal_note', 'founder_contact_subtitle',
+  'founder_cv_url', 'founder_email', 'founder_linkedin_url', 'founder_github_url',
+  'founder_skills', 'founder_personal_note', 'founder_interests', 'founder_contact_subtitle',
 ];
 
 // Panel de "Portafolio" — tu CV/portafolio público en /portafolio. El nombre,
@@ -93,15 +93,25 @@ const PortfolioPanel = () => {
               />
             </label>
             <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
-              CV (enlace de descarga, PDF)
+              Correo de contacto
               <input
-                value={form.founder_cv_url}
-                onChange={e => setForm(p => ({ ...p, founder_cv_url: e.target.value }))}
-                placeholder="https://..."
+                value={form.founder_email}
+                onChange={e => setForm(p => ({ ...p, founder_email: e.target.value }))}
+                placeholder="tu@correo.com"
                 className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
               />
             </label>
           </div>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            CV (enlace de descarga, PDF)
+            <input
+              value={form.founder_cv_url}
+              onChange={e => setForm(p => ({ ...p, founder_cv_url: e.target.value }))}
+              placeholder="https://..."
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
+            />
+          </label>
 
           <div className="grid md:grid-cols-2 gap-4">
             <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
@@ -125,11 +135,33 @@ const PortfolioPanel = () => {
           </div>
 
           <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            Tecnologías que dominas (una por línea — aparecen como etiquetas)
+            <textarea
+              value={form.founder_skills}
+              onChange={e => setForm(p => ({ ...p, founder_skills: e.target.value }))}
+              rows={4}
+              placeholder={'React\nNode.js\nPostgreSQL'}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
             Nota personal (sección "Sobre mí", opcional)
             <textarea
               value={form.founder_personal_note}
               onChange={e => setForm(p => ({ ...p, founder_personal_note: e.target.value }))}
               rows={3}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
+            Intereses personales (una por línea, opcional — aparecen como etiquetas junto a la nota)
+            <textarea
+              value={form.founder_interests}
+              onChange={e => setForm(p => ({ ...p, founder_interests: e.target.value }))}
+              rows={3}
+              placeholder={'Fitness y gimnasio\nCultura JDM / Car tuning'}
               className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none resize-none normal-case"
             />
           </label>

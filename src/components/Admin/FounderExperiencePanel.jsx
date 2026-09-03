@@ -3,9 +3,9 @@ import { Plus, Pencil, Trash2, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useContentItems } from '../../hooks/useContentItems';
 
-const EMPTY_FORM = { dateLabel: '', title: '', description: '' };
+const EMPTY_FORM = { type: 'work', dateLabel: '', title: '', description: '' };
 
-const toPayload = (item) => ({ dateLabel: item.dateLabel, title: item.title, description: item.description });
+const toPayload = (item) => ({ type: item.type, dateLabel: item.dateLabel, title: item.title, description: item.description });
 
 // Trayectoria (experiencia y educación) del fundador — se muestra en /portafolio.
 const FounderExperiencePanel = () => {
@@ -20,7 +20,7 @@ const FounderExperiencePanel = () => {
 
   const openCreate = () => { setForm(EMPTY_FORM); setEditingId('new'); setError(''); };
   const openEdit = (item) => {
-    setForm({ dateLabel: item.dateLabel || '', title: item.title, description: item.description || '' });
+    setForm({ type: item.type || 'work', dateLabel: item.dateLabel || '', title: item.title, description: item.description || '' });
     setEditingId(item.id);
     setError('');
   };
@@ -100,6 +100,18 @@ const FounderExperiencePanel = () => {
             </button>
           </div>
 
+          <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500 max-w-xs">
+            Tipo
+            <select
+              value={form.type}
+              onChange={e => handleChange('type', e.target.value)}
+              className="bg-transparent border-2 border-gray-300 dark:border-white/20 focus:border-leybrak-blue text-gray-900 dark:text-white px-3 py-2.5 text-[13px] font-mono outline-none"
+            >
+              <option value="work">Experiencia laboral</option>
+              <option value="education">Educación</option>
+            </select>
+          </label>
+
           <label className="flex flex-col gap-1 text-[11px] font-mono uppercase text-gray-500">
             Fecha (ej. 2026 — Actualidad)
             <input
@@ -166,6 +178,7 @@ const FounderExperiencePanel = () => {
             <thead>
               <tr className="border-b-2 border-gray-900 dark:border-white text-[10px] font-mono uppercase tracking-widest text-gray-500">
                 <th className="px-4 py-3">Orden</th>
+                <th className="px-4 py-3">Tipo</th>
                 <th className="px-4 py-3">Fecha</th>
                 <th className="px-4 py-3">Puesto</th>
                 <th className="px-4 py-3"></th>
@@ -194,6 +207,7 @@ const FounderExperiencePanel = () => {
                       </button>
                     </div>
                   </td>
+                  <td className="px-4 py-3 font-mono text-gray-500">{item.type === 'education' ? 'Educación' : 'Experiencia'}</td>
                   <td className="px-4 py-3 font-mono text-gray-500">{item.dateLabel}</td>
                   <td className="px-4 py-3 font-bold">{item.title}</td>
                   <td className="px-4 py-3">

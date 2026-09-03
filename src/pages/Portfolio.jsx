@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ArrowRight, Download, MessageCircle, ExternalLink, Send, User } from 'lucide-react';
+import { ArrowRight, Download, MessageCircle, ExternalLink, Send, User, Mail, Briefcase, GraduationCap, Code2 } from 'lucide-react';
 import { FaLinkedin, FaGithub } from 'react-icons/fa6';
 import { useSiteSettings } from '../hooks/useSiteSettings';
 import { useContentItems } from '../hooks/useContentItems';
@@ -15,6 +15,9 @@ const DEFAULT_FOUNDER = {
   role: 'Fundador · Full-stack & Data',
   photoUrl: null,
 };
+
+// Convierte un texto "uno por línea" (como se guarda en settings) en una lista limpia
+const parseLines = (text) => (text || '').split('\n').map(l => l.trim()).filter(Boolean);
 
 // ─── Formulario de contacto — usa el mismo sistema de leads que el resto de la web ──
 const ContactForm = () => {
@@ -111,6 +114,11 @@ const Portfolio = () => {
   const founder = team.find(m => m.isFounder) || DEFAULT_FOUNDER;
   const WA_BASE = `https://wa.me/${settings.whatsapp_number}`;
   const waMessage = encodeURIComponent(`Hola ${founder.name.split(' ')[0]}, vi tu portafolio en la web de Leybrak y quiero conversar.`);
+
+  const skills     = parseLines(settings.founder_skills);
+  const interests  = parseLines(settings.founder_interests);
+  const workExperience = experience.filter(e => e.type !== 'education');
+  const education       = experience.filter(e => e.type === 'education');
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -209,28 +217,57 @@ const Portfolio = () => {
                       <Download size={15} /> Descargar CV
                     </a>
                   )}
-                  {settings.founder_linkedin_url && (
-                    <a href={settings.founder_linkedin_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center justify-center w-12 h-12 text-gray-400 hover:text-leybrak-blue border-2 border-gray-300 dark:border-white/20 hover:border-leybrak-blue transition-colors">
-                      <FaLinkedin size={18} />
-                    </a>
-                  )}
-                  {settings.founder_github_url && (
-                    <a href={settings.founder_github_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center justify-center w-12 h-12 text-gray-400 hover:text-leybrak-blue border-2 border-gray-300 dark:border-white/20 hover:border-leybrak-blue transition-colors">
-                      <FaGithub size={18} />
-                    </a>
-                  )}
                 </div>
+
+                {(settings.founder_email || settings.founder_linkedin_url || settings.founder_github_url) && (
+                  <div className="hi flex flex-wrap gap-x-6 gap-y-2 mt-1 font-mono text-[12px]">
+                    {settings.founder_email && (
+                      <a href={`mailto:${settings.founder_email}`}
+                         className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-leybrak-blue transition-colors">
+                        <Mail size={14} /> {settings.founder_email}
+                      </a>
+                    )}
+                    {settings.founder_linkedin_url && (
+                      <a href={settings.founder_linkedin_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-leybrak-blue transition-colors">
+                        <FaLinkedin size={14} /> LinkedIn
+                      </a>
+                    )}
+                    {settings.founder_github_url && (
+                      <a href={settings.founder_github_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-2 text-gray-500 dark:text-gray-400 hover:text-leybrak-blue transition-colors">
+                        <FaGithub size={14} /> GitHub
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </section>
 
-        {/* ── TRAYECTORIA ──────────────────────────────────────────────────── */}
-        {experience.length > 0 && (
-          <section ref={el => sectionRefs.current[0] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-900 dark:bg-[#050507]">
+        {/* ── TECNOLOGÍAS ──────────────────────────────────────────────────── */}
+        {skills.length > 0 && (
+          <section ref={el => sectionRefs.current[0] = el} className="py-14 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
             <div className="max-w-5xl mx-auto">
+              <span className="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-6 block w-fit">
+                <Code2 size={13} /> // TECNOLOGÍAS
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {skills.map((s, i) => (
+                  <span key={i} className="text-[12px] font-bold px-4 py-2 border-2 border-gray-900/10 dark:border-white/10 text-gray-700 dark:text-gray-300 uppercase tracking-wide hover:border-leybrak-blue hover:text-leybrak-blue transition-colors">
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ── TRAYECTORIA — experiencia y educación por separado ──────────── */}
+        {experience.length > 0 && (
+          <section ref={el => sectionRefs.current[1] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-900 dark:bg-[#050507]">
+            <div className="max-w-6xl mx-auto">
               <div className="mb-14">
                 <span className="inline-flex items-center bg-white text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-4 block w-fit">
                   // TRAYECTORIA
@@ -240,22 +277,52 @@ const Portfolio = () => {
                 </h2>
               </div>
 
-              <div className="border-l-2 border-t-2 border-white/10">
-                {experience.map((item) => (
-                  <div key={item.id} className="grid sm:grid-cols-[200px_1fr] gap-6 p-8 border-r-2 border-b-2 border-white/10">
-                    {item.dateLabel && (
-                      <span className="text-gray-500 font-mono text-[12px] uppercase tracking-wide">{item.dateLabel}</span>
-                    )}
-                    <div>
-                      <h3 className="text-[1.3rem] font-black uppercase text-white tracking-tight">{item.title}</h3>
-                      {item.description && (
-                        <p className="text-gray-400 mt-2 leading-relaxed" style={{ fontFamily: "'Barlow', sans-serif" }}>
-                          {item.description}
-                        </p>
-                      )}
+              <div className={`grid gap-10 ${workExperience.length > 0 && education.length > 0 ? 'lg:grid-cols-2' : ''}`}>
+                {workExperience.length > 0 && (
+                  <div>
+                    <h3 className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-leybrak-blue mb-4">
+                      <Briefcase size={14} /> Experiencia
+                    </h3>
+                    <div className="border-l-2 border-t-2 border-white/10">
+                      {workExperience.map((item) => (
+                        <div key={item.id} className="flex flex-col gap-1 p-6 border-r-2 border-b-2 border-white/10">
+                          {item.dateLabel && (
+                            <span className="text-gray-500 font-mono text-[11px] uppercase tracking-wide">{item.dateLabel}</span>
+                          )}
+                          <h4 className="text-[1.1rem] font-black uppercase text-white tracking-tight">{item.title}</h4>
+                          {item.description && (
+                            <p className="text-gray-400 text-[0.9rem] leading-relaxed" style={{ fontFamily: "'Barlow', sans-serif" }}>
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   </div>
-                ))}
+                )}
+
+                {education.length > 0 && (
+                  <div>
+                    <h3 className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-widest text-leybrak-blue mb-4">
+                      <GraduationCap size={14} /> Educación
+                    </h3>
+                    <div className="border-l-2 border-t-2 border-white/10">
+                      {education.map((item) => (
+                        <div key={item.id} className="flex flex-col gap-1 p-6 border-r-2 border-b-2 border-white/10">
+                          {item.dateLabel && (
+                            <span className="text-gray-500 font-mono text-[11px] uppercase tracking-wide">{item.dateLabel}</span>
+                          )}
+                          <h4 className="text-[1.1rem] font-black uppercase text-white tracking-tight">{item.title}</h4>
+                          {item.description && (
+                            <p className="text-gray-400 text-[0.9rem] leading-relaxed" style={{ fontFamily: "'Barlow', sans-serif" }}>
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </section>
@@ -263,7 +330,7 @@ const Portfolio = () => {
 
         {/* ── PROYECTOS ────────────────────────────────────────────────────── */}
         {projects.length > 0 && (
-          <section ref={el => sectionRefs.current[1] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
+          <section ref={el => sectionRefs.current[2] = el} className="py-20 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
             <div className="max-w-7xl mx-auto">
               <div className="mb-14">
                 <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-4 block w-fit">
@@ -325,7 +392,7 @@ const Portfolio = () => {
 
         {/* ── CERTIFICACIONES ─────────────────────────────────────────────── */}
         {certifications.length > 0 && (
-          <section ref={el => sectionRefs.current[2] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-50 dark:bg-[#08080a]">
+          <section ref={el => sectionRefs.current[3] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10 bg-gray-50 dark:bg-[#08080a]">
             <div className="max-w-7xl mx-auto">
               <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-8 block w-fit">
                 // CERTIFICACIONES
@@ -361,7 +428,7 @@ const Portfolio = () => {
 
         {/* ── SOBRE MÍ ─────────────────────────────────────────────────────── */}
         {settings.founder_personal_note && (
-          <section ref={el => sectionRefs.current[3] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
+          <section ref={el => sectionRefs.current[4] = el} className="py-16 px-6 border-b-2 border-gray-900/10 dark:border-white/10">
             <div className="max-w-3xl mx-auto text-center">
               <span className="inline-flex items-center bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[11px] px-3 py-1.5 uppercase tracking-[0.2em] border-l-4 border-leybrak-blue font-bold mb-6">
                 // SOBRE_MÍ
@@ -369,12 +436,21 @@ const Portfolio = () => {
               <p className="text-[1.1rem] text-gray-600 dark:text-gray-400 leading-relaxed" style={{ fontFamily: "'Barlow', sans-serif" }}>
                 {settings.founder_personal_note}
               </p>
+              {interests.length > 0 && (
+                <div className="flex flex-wrap justify-center gap-2 mt-6">
+                  {interests.map((interest, i) => (
+                    <span key={i} className="text-[11px] font-bold px-3 py-1.5 bg-leybrak-blue/10 text-leybrak-blue uppercase tracking-wide">
+                      {interest}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}
 
         {/* ── CONTACTO ─────────────────────────────────────────────────────── */}
-        <section ref={el => sectionRefs.current[4] = el} className="py-20 px-6 bg-gray-900 dark:bg-[#050507]">
+        <section ref={el => sectionRefs.current[5] = el} className="py-20 px-6 bg-gray-900 dark:bg-[#050507]">
           <div className="max-w-5xl mx-auto">
             <div className="grid md:grid-cols-2 gap-0 border-2 border-white/10">
               <div className="p-10 border-b-2 md:border-b-0 md:border-r-2 border-white/10 flex flex-col justify-between gap-8">
@@ -391,12 +467,18 @@ const Portfolio = () => {
                     </p>
                   )}
                 </div>
-                <div className="border-t border-white/10 pt-6">
+                <div className="border-t border-white/10 pt-6 flex flex-col gap-3">
                   <a href={`${WA_BASE}?text=${waMessage}`} target="_blank" rel="noopener noreferrer"
                      className="flex items-center gap-3 text-[#25D366] hover:underline font-mono text-[0.85rem] group">
                     <MessageCircle size={16} /> Abrir WhatsApp
                     <ArrowRight size={13} className="group-hover:translate-x-1 transition-transform" />
                   </a>
+                  {settings.founder_email && (
+                    <a href={`mailto:${settings.founder_email}`}
+                       className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors font-mono text-[0.85rem] group">
+                      <Mail size={16} /> {settings.founder_email}
+                    </a>
+                  )}
                 </div>
               </div>
               <div className="p-10">

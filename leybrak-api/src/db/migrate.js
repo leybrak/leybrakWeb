@@ -238,6 +238,7 @@ const createTables = async () => {
     -- ── Trayectoria (experiencia/educación) del fundador, para /portafolio ─────
     CREATE TABLE IF NOT EXISTS founder_experience (
       id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+      type          VARCHAR(20)  NOT NULL DEFAULT 'work', -- 'work' | 'education'
       date_label    VARCHAR(80)  NOT NULL DEFAULT '',
       title         VARCHAR(160) NOT NULL,
       description   TEXT         NOT NULL DEFAULT '',
@@ -245,6 +246,8 @@ const createTables = async () => {
       created_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
       updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE founder_experience ADD COLUMN IF NOT EXISTS type VARCHAR(20) NOT NULL DEFAULT 'work';
 
     DROP TRIGGER IF EXISTS founder_experience_updated_at ON founder_experience;
     CREATE TRIGGER founder_experience_updated_at
@@ -305,6 +308,7 @@ const createTables = async () => {
     await seedProblemCards();
     await seedTeamMembers();
     await seedFounderExperience();
+    await backfillFounderExperienceEducation();
     await seedFounderProjects();
     await seedAdmin();
   } catch (err) {
@@ -381,6 +385,9 @@ const seedSettings = async () => {
     founder_github_url:       'https://github.com/SebastianSilvaMendoza',
     founder_personal_note:    'Más allá del código, me enfoco en el desarrollo personal, el fitness y la cultura JDM/Car Tuning. Sigo construyendo soluciones tecnológicas de alto nivel mientras hacemos crecer Leybrak.',
     founder_contact_subtitle: 'Abierto a oportunidades de colaboración y proyectos estratégicos de Business Intelligence y desarrollo de software.',
+    founder_email:            '',
+    founder_skills:           'SQL Server\nPower BI\nPython\nETL / SSIS\nn8n\nReact\nNode.js\nPostgreSQL\nMetodología Kimball\nEstadística aplicada',
+    founder_interests:        'Fitness y gimnasio\nCultura JDM / Car tuning\nCiencia de datos',
   };
 
   for (const [key, value] of Object.entries(defaults)) {
@@ -676,23 +683,31 @@ const seedFounderExperience = async () => {
   if (parseInt(rows[0].count) > 0) return;
 
   const items = [
-    { date_label: '2026 — Actualidad',      title: 'Fundador — Leybrak',
+    { type: 'work',      date_label: '2026 — Actualidad',    title: 'Fundador — Leybrak',
       description: 'Construyendo Leybrak: software y automatización para negocios que todavía dependen del papel y el Excel.' },
-    { date_label: '2026 — Actualidad',      title: 'Backend Developer Intern',
+    { type: 'work',      date_label: '2026 — Actualidad',    title: 'Backend Developer Intern',
       description: 'Desarrollo de módulos de facturación y lógica de negocio para sistemas ERP mediante React, Vite y Supabase.' },
-    { date_label: '2024 — 2027 (egreso)',   title: 'Ciencia de Datos e IA — SENATI',
+    { type: 'education', date_label: '2024 — 2027 (egreso)', title: 'Ciencia de Datos e IA — SENATI',
       description: 'Formación académica enfocada en Inteligencia de Negocios, Estadística Aplicada e Integración de Datos.' },
-    { date_label: '2024 — Actualidad',      title: 'Freelance BI Developer',
+    { type: 'work',      date_label: '2024 — Actualidad',    title: 'Freelance BI Developer',
       description: 'Diseño de Datamarts para el sector textil en Gamarra, optimizando el análisis de ventas e inventarios mediante SQL Server y Power BI.' },
   ];
 
   for (let i = 0; i < items.length; i++) {
     await pool.query(
-      `INSERT INTO founder_experience (date_label, title, description, sort_order) VALUES ($1, $2, $3, $4)`,
-      [items[i].date_label, items[i].title, items[i].description, i + 1]
+      `INSERT INTO founder_experience (type, date_label, title, description, sort_order) VALUES ($1, $2, $3, $4, $5)`,
+      [items[i].type, items[i].date_label, items[i].title, items[i].description, i + 1]
     );
   }
   console.log('✅ Trayectoria inicial del fundador cargada');
+};
+
+// ── Corrige el tipo de la fila de SENATI en instalaciones ya sembradas antes
+// de que existiera la distinción experiencia/educación ──────────────────────
+const backfillFounderExperienceEducation = async () => {
+  await pool.query(
+    `UPDATE founder_experience SET type = 'education' WHERE title ILIKE '%SENATI%' AND type = 'work'`
+  );
 };
 
 // ── Proyecto inicial del portafolio del fundador ──────────────────────────────

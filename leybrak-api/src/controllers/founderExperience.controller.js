@@ -2,6 +2,7 @@ const pool = require('../db/pool');
 
 const toClient = (row) => ({
   id:          row.id,
+  type:        row.type,
   dateLabel:   row.date_label,
   title:       row.title,
   description: row.description,
@@ -21,13 +22,13 @@ const getExperience = async (_req, res) => {
 
 // ── POST /api/founder-experience — admin ───────────────────────────────────────
 const createExperience = async (req, res) => {
-  const { dateLabel = '', title, description = '', sortOrder = 0 } = req.body;
+  const { type = 'work', dateLabel = '', title, description = '', sortOrder = 0 } = req.body;
   try {
     const result = await pool.query(
-      `INSERT INTO founder_experience (date_label, title, description, sort_order)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO founder_experience (type, date_label, title, description, sort_order)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [dateLabel, title, description, sortOrder]
+      [type, dateLabel, title, description, sortOrder]
     );
     return res.status(201).json({ ok: true, data: toClient(result.rows[0]) });
   } catch (err) {
@@ -38,17 +39,18 @@ const createExperience = async (req, res) => {
 
 // ── PUT /api/founder-experience/:id — admin ────────────────────────────────────
 const updateExperience = async (req, res) => {
-  const { dateLabel, title, description, sortOrder } = req.body;
+  const { type, dateLabel, title, description, sortOrder } = req.body;
   try {
     const result = await pool.query(
       `UPDATE founder_experience SET
-         date_label  = COALESCE($1, date_label),
-         title       = COALESCE($2, title),
-         description = COALESCE($3, description),
-         sort_order  = COALESCE($4, sort_order)
-       WHERE id = $5
+         type        = COALESCE($1, type),
+         date_label  = COALESCE($2, date_label),
+         title       = COALESCE($3, title),
+         description = COALESCE($4, description),
+         sort_order  = COALESCE($5, sort_order)
+       WHERE id = $6
        RETURNING *`,
-      [dateLabel, title, description, sortOrder, req.params.id]
+      [type, dateLabel, title, description, sortOrder, req.params.id]
     );
     if (result.rowCount === 0) {
       return res.status(404).json({ ok: false, message: 'No encontrado.' });

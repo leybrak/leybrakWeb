@@ -161,6 +161,10 @@ const teamMemberRules = [
 
 // ── Reglas para la trayectoria del fundador (/portafolio) ─────────────────────
 const founderExperienceRules = [
+  body('type')
+    .optional()
+    .isIn(['work', 'education']).withMessage('Tipo no válido'),
+
   body('dateLabel')
     .optional()
     .trim()
