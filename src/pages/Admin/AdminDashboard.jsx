@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { LogOut, Package, Settings, KeyRound, ArrowLeft, Tag, Wrench, Users, UserSquare2, Briefcase, FileText, Home } from 'lucide-react';
+import { LogOut, Package, Settings, KeyRound, ArrowLeft, Tag, Wrench, Users, UserSquare2, Briefcase, FileText, Home, Inbox } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import LeadsPanel from '../../components/Admin/LeadsPanel';
 import ProductsPanel from '../../components/Admin/ProductsPanel';
 import PlansPanel from '../../components/Admin/PlansPanel';
 import ContentItemsPanel from '../../components/Admin/ContentItemsPanel';
@@ -18,6 +19,7 @@ const ServiciosPanel = () => (
 );
 
 const TABS = [
+  { key: 'leads',         label: 'Leads',         icon: Inbox,     Panel: LeadsPanel },
   { key: 'inicio',        label: 'Inicio',        icon: Home,      Panel: InicioPanel },
   { key: 'productos',     label: 'Productos',     icon: Package,   Panel: ProductsPanel },
   { key: 'planes',        label: 'Planes',        icon: Tag,       Panel: PlansPanel },
@@ -32,7 +34,7 @@ const TABS = [
 
 const AdminDashboard = () => {
   const { logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('productos');
+  const [activeTab, setActiveTab] = useState('leads');
 
   const ActivePanel = TABS.find(t => t.key === activeTab)?.Panel;
 
